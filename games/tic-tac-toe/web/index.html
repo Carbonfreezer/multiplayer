@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test page</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: black;
+        }
+
+        h1 {
+            color: white;
+            margin: 0;
+            padding: 10px;
+        }
+
+        canvas {
+            width: 400px;
+            height: 400px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<h1>Test for Tic-Tac-Toe</h1>
+<input type="text" id="mobile-keyboard-input"
+       style="position: absolute; left: -9999px; opacity: 0;"
+       autocomplete="off" />
+<canvas id="glcanvas" tabindex='0'></canvas>
+<!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
+<script src="mq_js_bundle.js"></script>
+<script src="quad_ws.js"></script>
+<script src="sapp_jsutils.js"></script>
+<script src="enable_keyboard.js"></script>
+<script>
+    load("tic-tac-toe.wasm");
+</script>
+
+
+</body>
+</html>
