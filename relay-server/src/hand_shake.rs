@@ -211,8 +211,9 @@ async fn process_handshake_client(
         return None;
     };
 
-    // Do we fit in, the default case was to set an infinite amount of players available to 0. This will never happen as amount of players is at least one.
-    if local_room.amount_of_players == initial_result.max_players {
+    // Do we fit in? max_players == 0 means "infinite".
+    // Use >= so we reject if the room is already at/over capacity (defensive if state was inconsistent).
+    if initial_result.max_players != 0 && local_room.amount_of_players >= initial_result.max_players {
         drop(rooms);
         send_closing_message(sender,  format!(
             "Room  {} exceeded max amount of players {}.",
