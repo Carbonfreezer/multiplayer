@@ -52,7 +52,7 @@ where
     /// Gets invoked when a timer got triggered.
     fn timer_triggered(&mut self, timer_id: u16);
 
-    /// Asks for the front end state, that can be used for final game state commit. This structure has to be updated by the backend architecture itself.
+    /// Asks for the current view state that contains all the accumulated changes. This structure has to be updated by the backend architecture itself.
     /// Every delta information that will get drained by drain commands also has to be inserted into the view state.
     fn get_view_state(&self) -> &ViewState;
 

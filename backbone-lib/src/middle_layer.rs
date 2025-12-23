@@ -10,19 +10,19 @@
 //!
 //! To use the system, the following components have to be implemented:
 //! * ServerRpcPayload: This entity (probably an enum) contains the payload send by the front end to the game logic.
-//!   Typically this boils down to user interaction commands, like making a move. To limit network traffic a smart preselection should already been done on the client side.
+//!   Typically, this boils down to user interaction commands, like making a move. To limit network traffic a smart preselection should already been done on the client side.
 //! * DeltaInformation: This is the corresponding downstream part. This contains change information for the front end, like drawing a card or  making a move (probably also en enum). This can be polled step by step
 //!   from the front end also for animation transitions. Do not be afraid to spilt complex transitions into several DeltaInformations. They get coalesced in network transmission.
-//! * FrontEndState: This is snapshot for the frontend. It contains all the information for the frontend to demonstrate the game as is. This information gets used, when a new client joins.
-//!   When the frontend polls such a message, it should not animate to something but simply set the current visualization state. The FrontEndState is administrated by the backend, it usually contains all relevant information.
+//! * ViewState: This is snapshot for the frontend. It contains all the information for the frontend to demonstrate the game as is. This information gets used, when a new client joins.
+//!   When the frontend polls such a message, it should not animate to something but simply set the current visualization state. The ViewState is administrated by the backend, it usually contains all relevant information.
 //! * BackendArchitecture: This is the module that contains the real board game logic and only sits on the server side.
 //! * Frontend: Before entering the game loop the middle layer should be created. At the beginning of the core loop an update should be invoked.
 //!
 //! As long as the Middlelayer is disconnected, a UI for creating or joining a room should be shown. Also the error string should be displayed.
 //! As soon as the middlelayer is connected, the real game gets executed. All game logic relevant user interactions are sent to the middle layer via register_server_rpc. Updating the
-//! visualization is done by polling game state updates via get_next_update. Full means a hard set of the frontend state. This happens on server start or  client connect or after a reset command
+//! visualization is done by polling game state updates via get_next_update. A full update means a hard set of the view state. This happens on server start or  client connect or after a reset command
 //! or if an explicit hard setting is required by the game logic.
-//! Simply hard set your frontend to the indicated information. The incremental flags a local small update, that may eventually be executed by an animation (like moving a figure or dealing a card.).
+//! Simply hard set your frontend to the indicated information. The incremental update flags a local small update, that may eventually be executed by an animation (like moving a figure or dealing a card.).
 //!
 //! A rough usage example looks like this:
 //! ```text
