@@ -2,7 +2,7 @@
 This project contains a multi-player game system in Rust, primarily designed for Browser Games compiled as a WASM client. This project uses Axum/Tokio for the server, which also serves as a web server and a game-agnostic relay server. New games may even be added without
 restarting the server. This is contained in the project **relay-server**. Second, it includes a library to construct multiplayer (browser) games on. It follows the philosophy of the client-hosted server, where clients can send a remote procedure call to the server, and the server
 either sends delta updates or a whole view state to the clients. This is based on the network architecture of engines like Unity (NGO) or Unreal, though in a reduced form. This is contained in the library sub-project **backbone-lib**. The two components get interconnected
-over web sockets. Shared protocol identifiers are kept in the sub-project **protocol**. As an example, a simple multiplayer game has been included in **games/tic-tac-toe**. You can find this system running in a more elaborate form on [Board-Game-Hub](https://board-game-hund.de).
+over web sockets. Shared protocol identifiers are kept in the sub-project **protocol**. As an example, a simple multiplayer game has been included in **games/tic-tac-toe**. You can find this system running in a more elaborate form on [Board-Game-Hub](https://board-game-hunb.de).
 
 # Why look at this project
 Putting the central aspect aside, if you want to program multiplayer browser-based games, this project also contains some interesting solutions for problems I stumbled upon:
