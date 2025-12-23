@@ -47,4 +47,4 @@ The system contains the following components:
   of the initial game connection, and can send game mechanics-relevant input over an RPC. Then it can poll state changes from the middle layer to either 
   hard-set the view state or perform animation transitions.
 
-  A more specific, detailed documentation gets generated when you run *cargo doc*, which is done automatically when you run the script in [Getting started](#Getting-started).
+A more specific, detailed documentation gets generated when you run *cargo doc*, which is done automatically when you run the script in [Getting started](#Getting-started).
