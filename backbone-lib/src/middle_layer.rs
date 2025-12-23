@@ -464,7 +464,7 @@ where
 
         // If we have a client joined we sent a full state broadcast.
         // We do not have to send this information to the local player, as he has always been present.
-        // We do the full sync right at the end, because the front end state is the final state that is left by the backend.
+        // We do the full sync right at the end, because the view state is the final state that is left by the backend.
         if client_joined {
             communicator.server_send_full_sync(server_context.back_end.get_view_state());
         }
