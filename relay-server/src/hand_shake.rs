@@ -3,7 +3,7 @@
 //! WASM Client -> Websocket: postcard serialized join request.
 //! Websocket -> WASM Client: u16 player id, u16 rule variation.
 
-use protocol::{CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HANDSHAKE_RESPONSE_SIZE, NEW_CLIENT, NEW_CLIENT_MSG_SIZE, SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR, HAND_SHAKE_RESPONSE, JoinRequest};
+use protocol::{CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HAND_SHAKE_RESPONSE_SIZE, NEW_CLIENT, NEW_CLIENT_MSG_SIZE, SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR, HAND_SHAKE_RESPONSE, JoinRequest};
 use crate::hand_shake::ClientServerSpecificData::{Client, Server};
 use crate::hand_shake::DisconnectEndpointSpecification::{DisconnectClient, DisconnectServer};
 use crate::server_state::{AppState, Room};
@@ -301,7 +301,7 @@ pub async fn inform_client_of_connection(
     sender: &mut SplitSink<WebSocket, Message>,
     status: &HandshakeResult,
 ) -> bool {
-    let mut msg = BytesMut::with_capacity(HANDSHAKE_RESPONSE_SIZE);
+    let mut msg = BytesMut::with_capacity(HAND_SHAKE_RESPONSE_SIZE);
     msg.put_u8(HAND_SHAKE_RESPONSE);
     msg.put_u16(status.player_id);
     msg.put_u16(status.rule_variation);

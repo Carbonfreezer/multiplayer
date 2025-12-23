@@ -48,3 +48,17 @@ The system contains the following components:
   hard-set the view state or perform animation transitions.
 
 A more specific, detailed documentation gets generated when you run *cargo doc*, which is done automatically when you run the script in [Getting started](#Getting-started).
+
+# Detailed descriptions
+In the following subsections we will describe the different members of the workspace in a bit more detail.
+
+## Relay Server
+
+## Backbone Library
+
+Websocket implementation trick.
+
+## Tic-Tac-Toe
+
+
+egui and hidden text field trick.

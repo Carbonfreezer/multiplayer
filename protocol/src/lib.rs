@@ -50,7 +50,7 @@ pub const HAND_SHAKE_RESPONSE: u8 = 6;
 
 // Sizes of entries.
 /// For the handshake we respond with player id and rule variation. (u16 + u16)
-pub const HANDSHAKE_RESPONSE_SIZE: usize = 5;
+pub const HAND_SHAKE_RESPONSE_SIZE: usize = 5;
 
 /// The size of a new client. (u16)
 pub const CLIENT_ID_SIZE: usize = 2;
