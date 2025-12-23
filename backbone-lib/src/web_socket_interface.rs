@@ -1,5 +1,5 @@
 //! Does all communication related stuff with the web sockets.
-//! Uses ewebsock for native builds and quad-net for WASM builds.
+//! Uses ewebsock for native builds and own implementation for WASM builds.
 
 use protocol::{
     CLIENT_DISCONNECTS, CLIENT_DISCONNECTS_SELF, CLIENT_GETS_KICKED, CLIENT_ID_SIZE, DELTA_UPDATE,
