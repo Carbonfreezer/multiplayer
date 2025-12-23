@@ -1,0 +1,13 @@
+[package]
+name = "backbone-lib"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+postcard = { version = "1.1.3", features = ["use-std"] }
+bytes = "1.11.0"
+ewebsock = "0.8.0"
+protocol = {path = "../protocol"}
+
+

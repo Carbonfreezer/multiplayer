@@ -1,0 +1,20 @@
+[workspace]
+resolver = "3"
+members = [
+    "relay-server",
+    "protocol",
+    "backbone-lib",
+    "games/tic-tac-toe",
+]
+
+
+# For the server we will need opt-level='3'
+[profile.release]
+opt-level = 'z'       # Minimum space
+lto = "fat"         # Aggressive Link Time Optimization
+codegen-units = 1   # Bessere Optimierung über alle Units
+
+# Profile for profiling
+[profile.profiling]
+inherits = "release"
+debug = true
