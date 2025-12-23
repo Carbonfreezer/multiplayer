@@ -223,7 +223,7 @@ async fn process_handshake_client(
     }
     
     // Save guard against the case, that we have run out of client ids.
-    if local_room.next_client_id > 32700 {
+    if local_room.next_client_id >  u16::MAX - 100 {
         drop(rooms);
         send_closing_message(sender,  format!(
             "Room {} run out of client ids.",
