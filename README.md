@@ -52,7 +52,29 @@ A more specific, detailed documentation gets generated when you run *cargo doc*,
 # Detailed descriptions
 In the following subsections we will describe the different members of the workspace in a bit more detail.
 
+
+## Protocol
+This library project simply contains some shared definitions between the relay server and the backbone library. As every message 
+is marked with a byte header the meaning of those headers and partially the size of the messages are encoded in constants here. 
+The structure **JoinRequest** contains the protocol information from a client to the relay server to join a game.
+
 ## Relay Server
+The relay server loads a JSON file **GameConfig.json** on startup that contains the information which games exist and what the 
+maximum number of players a room should hold. Setting this value to 0 means, that there is no limitation.
+A simple JSON file looks like this:
+````
+[
+  {
+    "name" : "tic-tac-toe",
+    "max_players" : 10
+  }
+]
+````
+More games may be added by extending the array. Once the server is running the list of games may be extended during runtime.
+This may be done by calling the **reload** site with the browser on the domain, where the relay server is running on. 
+The site **enlist** shows the currently active rooms.
+
+
 
 ## Backbone Library
 
