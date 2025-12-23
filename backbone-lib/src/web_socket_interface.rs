@@ -93,7 +93,7 @@ impl ConnectionInformation {
     }
 
     // ===================================================================
-    // WASM (quad-net) implementations
+    // WASM (JavaScript) implementations
     // ===================================================================
 
     #[cfg(target_arch = "wasm32")]
