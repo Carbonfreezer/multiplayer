@@ -22,3 +22,28 @@ This depot contains two JavaScript files that are part of other projects and are
 
 # Getting started
 To get everything running as fast as possible, clone this repository and compile it with *BuildAll.bat* on Windows and *BuildAll.sh* on Linux. On Linux, you have to make the shell script executable upfront. Once this is done, start the relay server in the deploy directory. This starts a web server on port 8080. Now type http://127.0.0.1:8080 into your favourite browser. You should see a room creation screen. Start a second browser window and do the same here, and you can play tic-tac-toe against yourself. Opening the same page in two tabs is problematic because you have to switch tabs a couple of times to send the messages. 
+
+# General overview
+The overall architecture and idea of the system is sketched in the following image:
+
+![Architecture](Layout.png)
+
+The system contains the following components:
+
+* **Relay-Server** : The game agnostic server, that has functionality for room and connection management, it is game agnostic. The main services it
+    provides is forwarding of remote procedure calls from the clients to the server and sending partial updates and complete changes of View State to the clients.
+* **View State**: Essentially a data structure, that is controlled by the client hosted server and send to the clients. It may be sent entirely or as a series  
+  of partial updates. The client typically receives a complete update upon joining the room or when the client hosted server decides to do so, 
+  what typically happens at a start of the new game. The idea is, that the Frontend may use partial updates of the View State to show transition animations.
+* **Backend**: This contains the real game logic and is entirely event based, as the system has been primarily designed for board games in mind.
+  The backend only resides on the client hosted server side and has to implement the **BackEndArchitecture** trait. The backend has an internal
+  view state. All incremental changes it does get logged in a *BackendCommand* vector and also need to get applied to an internally administrated
+  view state, that may get send over the network if needed.
+* **Middle Layer**: This is the central part of the library **backbone-lib**. The middle layer receives requests from the front end and sends requests to the 
+  backend on the server side. To have a clear chain of command and to avoid any confusion with smart pointers and RefCells, the backend does
+  not send any commands to the middle layer, but builds a command buffer. This buffer may get polled from the middle layer. The middle layer
+  is the nexus for all the information flow in the system. It also takes care of new arriving players on the client hosted server, to provide them
+  a full view state update.
+* **Frontend**: This is the main program written in Macroquad, that is based on a core game loop. It has to heartbeat the middle layer, takes care
+  of the initial game connection, can send game mechanics relevant input over an RPC. Then it can poll state changes from the middle layer to either 
+  hard set the view state or perform animation transitions.
