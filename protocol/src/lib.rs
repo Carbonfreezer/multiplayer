@@ -1,5 +1,7 @@
 //! The ids for messages that we use. They will be used consistent across the server and the client.
 
+use serde::{Deserialize, Serialize};
+
 /// The buffer sizes for the channels for intra VPS communication.
 pub const CHANNEL_BUFFER_SIZE: usize = 256;
 
@@ -52,3 +54,16 @@ pub const HANDSHAKE_RESPONSE_SIZE: usize = 5;
 
 /// The size of a new client. (u16)
 pub const CLIENT_ID_SIZE: usize = 2;
+
+/// The join request. This struct is used on the server and on the client.
+#[derive(Deserialize, Serialize)]
+pub struct JoinRequest {
+    /// Which game do we want to join.
+    pub game_id: String,
+    /// Which room do we want to join.
+    pub room_id: String,
+    /// The rule variation that is applied, this gets only interpreted if a room gets constructed.
+    pub rule_variation: u16,
+    /// Do we want to create a room and act as a server?
+    pub create_room: bool,
+}

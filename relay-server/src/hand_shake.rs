@@ -3,7 +3,7 @@
 //! WASM Client -> Websocket: postcard serialized join request.
 //! Websocket -> WASM Client: u16 player id, u16 rule variation.
 
-use protocol::{CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HANDSHAKE_RESPONSE_SIZE, NEW_CLIENT, NEW_CLIENT_MSG_SIZE, SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR, HAND_SHAKE_RESPONSE};
+use protocol::{CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HANDSHAKE_RESPONSE_SIZE, NEW_CLIENT, NEW_CLIENT_MSG_SIZE, SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR, HAND_SHAKE_RESPONSE, JoinRequest};
 use crate::hand_shake::ClientServerSpecificData::{Client, Server};
 use crate::hand_shake::DisconnectEndpointSpecification::{DisconnectClient, DisconnectServer};
 use crate::server_state::{AppState, Room};
@@ -13,7 +13,6 @@ use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use postcard::from_bytes;
-use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -87,19 +86,6 @@ impl From<&HandshakeResult> for DisconnectData {
             },
         }
     }
-}
-
-/// The join request we get from the server.
-#[derive(Deserialize)]
-struct JoinRequest {
-    /// Which game do we want to join.
-    game_id: String,
-    /// Which room do we want to join.
-    room_id: String,
-    /// The rule variation that is applied, this gets only interpreted if a room gets constructed.
-    rule_variation: u16,
-    /// Do we want to create a room and act as a server?
-    create_room: bool,
 }
 
 /// Gets an initial connection result, where a room is constructed

@@ -1,16 +1,11 @@
 //! Does all communication related stuff with the web sockets.
 //! Uses ewebsock for native builds and own implementation for WASM builds.
 
-use protocol::{
-    CLIENT_DISCONNECTS, CLIENT_DISCONNECTS_SELF, CLIENT_GETS_KICKED, CLIENT_ID_SIZE, DELTA_UPDATE,
-    FULL_UPDATE, HAND_SHAKE_RESPONSE, NEW_CLIENT, RESET, SERVER_DISCONNECTS, SERVER_ERROR,
-    SERVER_RPC,
-};
+use protocol::{JoinRequest, CLIENT_DISCONNECTS, CLIENT_DISCONNECTS_SELF, CLIENT_GETS_KICKED, CLIENT_ID_SIZE, DELTA_UPDATE, FULL_UPDATE, HAND_SHAKE_RESPONSE, NEW_CLIENT, RESET, SERVER_DISCONNECTS, SERVER_ERROR, SERVER_RPC};
 use crate::middle_layer::ViewStateUpdate;
 use crate::traits::SerializationCap;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use postcard::{from_bytes, take_from_bytes, to_stdvec};
-use serde::{Deserialize, Serialize};
 
 #[cfg(not(target_arch = "wasm32"))]
 use ewebsock::WsEvent::{Closed, Error, Message};
@@ -28,19 +23,6 @@ unsafe extern "C" {
     fn quad_ws_send(data_ptr: *const u8, data_len: usize);
     fn quad_ws_next_message_len() -> usize;
     fn quad_ws_recv(buffer_ptr: *mut u8, buffer_len: usize) -> usize;
-}
-
-/// The join request we get from the server. This is the same info as in the rust server to remain compatibility.
-#[derive(Deserialize, Serialize)]
-struct JoinRequest {
-    /// Which game do we want to join.
-    game_id: String,
-    /// Which room do we want to join.
-    room_id: String,
-    /// The rule variation that is applied, this gets only interpreted if a room gets constructed.
-    rule_variation: u16,
-    /// Do we want to create a room and act as a server?
-    create_room: bool,
 }
 
 /// A local structure that gets completed by the synchronization.
