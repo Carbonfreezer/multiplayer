@@ -12,7 +12,7 @@ mod tic_tac_toe_logic;
 use crate::graphics::Graphics;
 use crate::gui::{StartupGui, StartupResult, gui_setup};
 use crate::tic_tac_toe_logic::backend::TicTacToeLogic;
-use crate::tic_tac_toe_logic::traits_implementation::{GameBoard, MoveCommand};
+use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand};
 use backbone_lib::middle_layer::{ConnectionState, MiddleLayer, ViewStateUpdate};
 use macroquad::prelude::{
     BLACK, Camera2D, Conf, MouseButton, Rect, Vec2, clear_background, get_frame_time,
@@ -38,13 +38,13 @@ async fn main() {
     set_camera(&camera);
 
     let graphics = Graphics::new(&camera);
-    let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard> =
+    let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, ViewState> =
         MiddleLayer::generate_middle_layer(
             "ws://127.0.0.1:8080/ws".to_string(),
             "tic-tac-toe".to_string(),
         );
 
-    let mut view_state: Option<GameBoard> = None;
+    let mut view_state: Option<ViewState> = None;
 
     let mut start_up_gui = StartupGui::default();
     gui_setup();
@@ -80,7 +80,7 @@ async fn main() {
                 rule_set: _,
             } => {
                 if view_state.is_none() {
-                    view_state = Some(GameBoard::new(true))
+                    view_state = Some(ViewState::new(true))
                 }
 
                 update_real_game(
@@ -100,9 +100,9 @@ async fn main() {
 /// finally it sends any potential mouse clicks as stone setting commands to the server.
 fn update_real_game(
     graphics: &Graphics,
-    middle_layer: &mut MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard>,
+    middle_layer: &mut MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, ViewState>,
     local_player: u16,
-    view_state: &mut GameBoard,
+    view_state: &mut ViewState,
 ) {
     // We do not have any animations here, so we simply drain the commands.
     while let Some(update) = middle_layer.get_next_update() {

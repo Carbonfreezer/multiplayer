@@ -1,4 +1,4 @@
-//! Contains the view state implementation and the command that is used as a delta information and 
+//! Contains the view state implementation and the command that is used as a delta information and
 //! Server RPC command at the same time here.
 
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ pub struct MoveCommand {
 
 /// The game board used as a view state.
 #[derive(Clone, Serialize, Deserialize)]
-pub struct GameBoard {
+pub struct ViewState {
     /// Contains the raw board 3,3 0: empty 1: cross, 2: circle
     pub board: Vec<Vec<u8>>,
     /// Flags if the next mode is host or not.
@@ -25,8 +25,8 @@ pub struct GameBoard {
     pub game_state: u8,
 }
 
-impl GameBoard {
-    pub fn new(is_host_starting: bool) -> GameBoard {
+impl ViewState {
+    pub fn new(is_host_starting: bool) -> ViewState {
         let mut board = Vec::with_capacity(3);
         for _ in 0..3 {
             let column = vec![0_u8, 0_u8, 0_u8];
@@ -34,7 +34,7 @@ impl GameBoard {
         }
 
         // Circle starts.
-        GameBoard {
+        ViewState {
             board,
             game_state: 0,
             next_move_host: is_host_starting,
@@ -62,47 +62,13 @@ impl GameBoard {
 
     /// Does a winning check with the player stone in probe handed over.
     fn check_for(&self, probe: u8) -> bool {
-        // Check all rows.
-        for row in 0..3 {
-            let mut all_probe = true;
-            for col in 0..3 {
-                if self.board[row][col] != probe {
-                    all_probe = false;
-                }
-            }
-            if all_probe {
-                return true;
-            }
-        }
-        // Check all columns
-        for col in 0..3 {
-            let mut all_probe = true;
-            for row in 0..3 {
-                if self.board[row][col] != probe {
-                    all_probe = false;
-                }
-            }
-            if all_probe {
-                return true;
-            }
-        }
-        // Diag 1
-        let mut all_probe = true;
-        for i in 0..3 {
-            if self.board[i][i] != probe {
-                all_probe = false;
-            }
-        }
-        if all_probe {
-            return true;
-        }
-        all_probe = true;
-        for i in 0..3 {
-            if self.board[i][2 - i] != probe {
-                all_probe = false;
-            }
-        }
-        all_probe
+        // Rows
+        (0..3).any(|row| (0..3).all(|col| self.board[row][col] == probe))
+            // Columns
+            || (0..3).any(|col| (0..3).all(|row| self.board[row][col] == probe))
+            // Diagonals
+            || (0..3).all(|i| self.board[i][i] == probe)
+            || (0..3).all(|i| self.board[i][2 - i] == probe)
     }
 
     /// 0 : pending 1 : cross wins 2 : circle wins 3 : draw

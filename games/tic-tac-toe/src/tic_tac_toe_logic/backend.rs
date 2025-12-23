@@ -1,13 +1,13 @@
 //! The back end of tic tac toe. This is the part that only gets executed ont the server side.
 
-use crate::tic_tac_toe_logic::traits_implementation::{GameBoard, MoveCommand};
+use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand};
 use backbone_lib::traits::{BackEndArchitecture, BackendCommand};
 
 /// The backend logic of tic tac toe is contained here,
 pub struct TicTacToeLogic {
     is_host_starting: bool,
     command_list: Vec<BackendCommand<MoveCommand>>,
-    game_state: GameBoard,
+    view_state: ViewState,
     allow_spectators: bool,
 }
 
@@ -16,18 +16,18 @@ impl TicTacToeLogic {
     fn reset_game(&mut self) {
         // This happens when we want to restart the game.
         self.command_list.push(BackendCommand::ResetViewState);
-        self.game_state = GameBoard::new(self.is_host_starting);
+        self.view_state = ViewState::new(self.is_host_starting);
     }
 }
 
 /// In this case the server RPC struct and the delta information is the same.
-impl BackEndArchitecture<MoveCommand, MoveCommand, GameBoard> for TicTacToeLogic {
+impl BackEndArchitecture<MoveCommand, MoveCommand, ViewState> for TicTacToeLogic {
     /// Starts the game rule variation only contains the information, if spectators are allowed.
     fn new(rule_variation: u16) -> Self {
         TicTacToeLogic {
             is_host_starting: true,
             command_list: Vec::new(),
-            game_state: GameBoard::new(true),
+            view_state: ViewState::new(true),
             allow_spectators: rule_variation == 1,
         }
     }
@@ -49,16 +49,16 @@ impl BackEndArchitecture<MoveCommand, MoveCommand, GameBoard> for TicTacToeLogic
 
     /// Check move for legality and if the game finished set the timer for restart.
     fn inform_rpc(&mut self, _: u16, payload: MoveCommand) {
-        if self.game_state.game_state != 0 {
+        if self.view_state.game_state != 0 {
             return;
         }
         // Returns illegal commands.
-        if !self.game_state.check_legality(&payload) {
+        if !self.view_state.check_legality(&payload) {
             return;
         }
-        self.game_state.apply_move(&payload);
+        self.view_state.apply_move(&payload);
         self.command_list.push(BackendCommand::Delta(payload));
-        if self.game_state.game_state != 0 {
+        if self.view_state.game_state != 0 {
             self.command_list.push(BackendCommand::SetTimer {
                 timer_id: 0,
                 duration: 5.0,
@@ -72,8 +72,8 @@ impl BackEndArchitecture<MoveCommand, MoveCommand, GameBoard> for TicTacToeLogic
         self.reset_game();
     }
 
-    fn get_view_state(&self) -> &GameBoard {
-        &self.game_state
+    fn get_view_state(&self) -> &ViewState {
+        &self.view_state
     }
 
     fn drain_commands(&mut self) -> Vec<BackendCommand<MoveCommand>> {
