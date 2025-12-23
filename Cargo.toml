@@ -12,7 +12,7 @@ members = [
 [profile.release]
 opt-level = 'z'       # Minimum space
 lto = "fat"         # Aggressive Link Time Optimization
-codegen-units = 1   # Bessere Optimierung über alle Units
+codegen-units = 1   
 
 # Profile for profiling
 [profile.profiling]
