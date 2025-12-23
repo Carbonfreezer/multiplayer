@@ -221,6 +221,17 @@ async fn process_handshake_client(
         )).await;
         return None;
     }
+    
+    // Save guard against the case, that we have run out of client ids.
+    if local_room.next_client_id > 32700 {
+        drop(rooms);
+        send_closing_message(sender,  format!(
+            "Room {} run out of client ids.",
+            &initial_result.room_id
+        )).await;
+        tracing::error!( "Server run out of client ids.");
+        return None;
+    }
 
     local_room.amount_of_players += 1;
     let player_id = local_room.next_client_id;
