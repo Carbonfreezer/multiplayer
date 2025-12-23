@@ -41,7 +41,6 @@ async fn main() {
     let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard> =
         MiddleLayer::generate_middle_layer(
             "ws://127.0.0.1:8080/ws".to_string(),
-            // "wss://board-game-hub.de/api/ws".to_string(),
             "tic-tac-toe".to_string(),
         );
 
