@@ -23,6 +23,8 @@ echo Copying server files...
 copy target\release\relay-server.exe %OUT%\
 copy relay-server\GameConfig.json %OUT%\
 
+echo Create documentation...
+cargo doc --no-deps -p backbone-lib -p protocol -p tic-tac-toe -p relay-server --open
 
 echo Done!
 pause
