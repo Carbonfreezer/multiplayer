@@ -1,72 +1,81 @@
 //! The middle layer takes care of the communication with the relay service.
-//! This is te core entry point of the system.
+//! This is the core entry point of the system.
 //!
-//! The overall architecture is like this:
-//! Frontend->MiddleLayer->Backend
-//! The backend only exists on the client hosted server side. Otherwise all other communications are channeled
-//! over the network. From the control flow it is commands and polling requests are sent from left to right.
-//! The frontend works macroquad game like heartbeat driven. The backend is purely event driven. The middle layer has
-//! to be created and updated from the frontend.
+//! # Architecture Overview
 //!
-//! To use the system, the following components have to be implemented:
-//! * ServerRpcPayload: This entity (probably an enum) contains the payload send by the front end to the game logic.
-//!   Typically, this boils down to user interaction commands, like making a move. To limit network traffic a smart preselection should already been done on the client side.
-//! * DeltaInformation: This is the corresponding downstream part. This contains change information for the front end, like drawing a card or  making a move (probably also en enum). This can be polled step by step
-//!   from the front end also for animation transitions. Do not be afraid to spilt complex transitions into several DeltaInformations. They get coalesced in network transmission.
-//! * ViewState: This is snapshot for the frontend. It contains all the information for the frontend to demonstrate the game as is. This information gets used, when a new client joins.
-//!   When the frontend polls such a message, it should not animate to something but simply set the current visualization state. The ViewState is administrated by the backend, it usually contains all relevant information.
-//! * BackendArchitecture: This is the module that contains the real board game logic and only sits on the server side.
-//! * Frontend: Before entering the game loop the middle layer should be created. At the beginning of the core loop an update should be invoked.
-//!
-//! As long as the Middlelayer is disconnected, a UI for creating or joining a room should be shown. Also the error string should be displayed.
-//! As soon as the middlelayer is connected, the real game gets executed. All game logic relevant user interactions are sent to the middle layer via register_server_rpc. Updating the
-//! visualization is done by polling game state updates via get_next_update. A full update means a hard set of the view state. This happens on server start or  client connect or after a reset command
-//! or if an explicit hard setting is required by the game logic.
-//! Simply hard set your frontend to the indicated information. The incremental update flags a local small update, that may eventually be executed by an animation (like moving a figure or dealing a card.).
-//!
-//! A rough usage example looks like this:
 //! ```text
+//! Frontend -> MiddleLayer -> Backend
+//! ```
 //!
-//!    let mut net_architecture: MiddleLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
-//!         MiddleLayer::generate_middle_layer(
-//!             "ws://127.0.0.1:8080/ws".to_string(),
-//!             "my_fat_game".to_string(),
-//!        );
-//!       loop {
-//!         let delta_time = get_frame_time();
-//!         net_architecture.update(delta_time);
+//! The backend only exists on the client-hosted server side. All other
+//! communication is channeled over the network. Commands and polling requests
+//! flow from left to right.
 //!
-//!         let state = net_architecture.connection_state().clone();
-//!         match state {
-//!             ConnectionState::Disconnected { error_string } => {
-//!                     // Process startup and connectin GUI here. and start server or client eventually.
-//!                      net_architecture
-//!                         .start_game_server(room, 0);
-//!             }
-//!             ConnectionState::Connected {
-//!                 is_server: _,
-//!                 player_id,
-//!                 rule_set,
-//!             } => {
-//!                 if let Some(update) = middle_layer.get_next_update() {
-//!                     match update {
-//!                         ViewStateUpdate::Full(state) => {
-//!                             // Process hard setting of view state
-//!                         }
-//!                         ViewStateUpdate::Incremental(delta) => {
-//!                             // Process any incremental information, resulting in animation.
-//!                         }
+//! - **Frontend**: Macroquad-style heartbeat-driven game loop
+//! - **MiddleLayer**: Created and updated by the frontend each frame
+//! - **Backend**: Purely event-driven, only exists on the host
+//!
+//! # Required Components
+//!
+//! To use the system, implement the following types:
+//!
+//! * **ServerRpcPayload**: Commands sent from frontend to game logic (e.g., `MakeMove`, `PlayCard`).
+//!   Pre-filter on the client side to minimize network traffic.
+//! * **DeltaInformation**: Incremental changes for the frontend (e.g., `CardDrawn`, `PieceMoved`).
+//!   Can be polled step-by-step for animation transitions. Complex transitions can be split
+//!   into multiple deltas — they get coalesced during network transmission.
+//! * **ViewState**: Complete snapshot for the frontend containing all visualization data.
+//!   Used when a new client joins. On receipt, set the visualization state immediately
+//!   without animation.
+//! * **BackendArchitecture**: The game logic module, only present on the server side.
+//!
+//! # Frontend Integration
+//!
+//! Before entering the game loop, create the middle layer. At the beginning of each frame,
+//! call `update()`.
+//!
+//! - While **Disconnected**: Show room creation/joining UI and display any error string
+//! - While **Connected**: Execute game logic, send RPCs via `register_server_rpc()`,
+//!   and poll state updates via `get_next_update()`
+//!
+//! # Example Usage
+//!
+//! ```text
+//! let mut net_architecture: MiddleLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
+//!     MiddleLayer::generate_middle_layer(
+//!         "ws://127.0.0.1:8080/ws".to_string(),
+//!         "my_fat_game".to_string(),
+//!     );
+//!
+//! loop {
+//!     let delta_time = get_frame_time();
+//!     net_architecture.update(delta_time);
+//!
+//!     let state = net_architecture.connection_state().clone();
+//!     match state {
+//!         ConnectionState::Disconnected { error_string } => {
+//!             // Process startup and connection GUI here
+//!             net_architecture.start_game_server(room, 0);
+//!         }
+//!         ConnectionState::Connected { is_server: _, player_id, rule_set } => {
+//!             if let Some(update) = net_architecture.get_next_update() {
+//!                 match update {
+//!                     ViewStateUpdate::Full(state) => {
+//!                         // Hard-set view state (no animation)
+//!                     }
+//!                     ViewStateUpdate::Incremental(delta) => {
+//!                         // Process with animation
 //!                     }
 //!                 }
-//!                 // In the logic we eventually create commands to be sent to the server.
-//!                 middle_layer.register_server_rpc(command);
-//!
 //!             }
-//!             _ => {}
+//!             // Send player actions to the server
+//!             net_architecture.register_server_rpc(command);
 //!         }
-//!
-//!         next_frame().await
+//!         _ => {}
 //!     }
+//!
+//!     next_frame().await
+//! }
 //! ```
 
 use crate::timer::Timer;
@@ -75,16 +84,38 @@ use crate::traits::{BackEndArchitecture, BackendCommand, SerializationCap};
 use crate::web_socket_interface::{ConnectionInformation, ToServerCommands};
 use std::collections::VecDeque;
 
-/// The game state updates we get. We always get a full sync after connection or during a game reset.
+/// State updates delivered to the frontend for rendering.
+///
+/// The frontend should handle these differently:
+/// - [`Full`](Self::Full): Immediately set all visual state (no animation)
+/// - [`Incremental`](Self::Incremental): Apply with animation/transition effects
 pub enum ViewStateUpdate<ViewState, DeltaInformation> {
-    /// The complete front end side representation of the game gets set. Happens on connect and after a reset. Is also
-    /// invoked on the server side on start up and when a reset got requested.
+    /// Complete game state snapshot.
+    ///
+    /// Received when:
+    /// - Initially connecting to a game
+    /// - After a game reset
+    /// - On server startup (for the host)
+    ///
+    /// The frontend should immediately synchronize all visuals to match
+    /// this state without animations.
     Full(ViewState),
-    /// Incremental information is transmitted for eventual animation.
+
+    /// Incremental state change for animated transitions.
+    ///
+    /// These arrive in order and can be polled one at a time to pace
+    /// animations across multiple frames. Examples:
+    /// - A piece moving from A to B
+    /// - A card being revealed
+    /// - A score incrementing
     Incremental(DeltaInformation),
 }
 
-/// All information that only exists on the server side.
+/// Server-only state container.
+///
+/// This struct exists only on the host client and manages the game backend,
+/// timers, and remote player tracking. It is created when `start_game_server()`
+/// succeeds and destroyed on disconnect or room termination.
 struct ServerContext<BackendArchitecture> {
     /// The backend that runs the game logic.
     back_end: BackendArchitecture,
@@ -94,25 +125,100 @@ struct ServerContext<BackendArchitecture> {
     amount_of_remote_players: u16,
 }
 
-/// The different phases we may be in concerning the connection.
+/// Connection lifecycle states.
+///
+/// The middle layer progresses through these states:
+///
+/// ```text
+/// Disconnected -> AwaitingHandshake -> ExecutingHandshake -> Connected
+///      ^                                                         |
+///      |___________________ (on error or disconnect) ____________|
+/// ```
+///
+/// Frontend code typically only needs to distinguish between `Disconnected`
+/// (show lobby UI) and `Connected` (run game loop).
 #[derive(Clone, PartialEq, Debug)]
 pub enum ConnectionState {
-    /// When we are disconnected we may have an error string, that tells the reason why we went to disconnection.
+    /// Not connected to any game room.
+    ///
+    /// The `error_string` contains the reason for disconnection if this state
+    /// was reached due to an error (connection lost, kicked, room terminated).
+    /// It's `None` on initial startup.
     Disconnected { error_string: Option<String> },
-    /// We are awaiting a handshake, introduced because of WASM client connecting. Probably not interesting in game logic.
+
+    /// WebSocket connection initiated, waiting for transport readiness.
+    ///
+    /// This intermediate state exists primarily for WASM clients where
+    /// WebSocket connection is asynchronous. Frontend can show a
+    /// "Connecting..." indicator.
     AwaitingHandshake,
-    /// We are awaiting a server response for client id, and rule set. Probably not interesting in game logic.
+
+    /// Transport ready, waiting for server response with player ID and rules.
+    ///
+    /// The handshake message has been sent; waiting for confirmation.
+    /// Frontend can continue showing "Connecting..." indicator.
     ExecutingHandshake,
-    /// We are connected now, we know, if we are a server, the player_id and the rule set. When we are and only when we are the server the
-    /// player_id is always 0.
+
+    /// Successfully connected and ready for gameplay.
+    ///
+    /// At this point:
+    /// - `player_id` is assigned (always `0` for the host)
+    /// - `rule_set` contains the game variant configuration
+    /// - State updates can be polled via `get_next_update()`
+    /// - RPCs can be sent via `register_server_rpc()`
     Connected {
+        /// `true` if this client is hosting the game (runs the backend).
         is_server: bool,
+        /// Unique player identifier for this session. Host is always `0`.
         player_id: u16,
+        /// Game variant/mode as configured by the host.
         rule_set: u16,
     },
 }
 
-/// The core entry point to the networking architecture.
+/// The central coordinator between frontend, backend, and network transport.
+///
+/// `MiddleLayer` abstracts away the differences between hosting and joining a game.
+/// The frontend interacts with it identically regardless of role:
+///
+/// ```text
+/// ┌─────────────────────────────────────────────────────────────────┐
+/// │                         Host Client                             │
+/// │  ┌──────────┐     ┌─────────────┐     ┌──────────────────────┐  │
+/// │  │ Frontend │◄───►│ MiddleLayer │◄───►│ Backend (game logic) │  │
+/// │  └──────────┘     └──────┬──────┘     └──────────────────────┘  │
+/// └──────────────────────────┼──────────────────────────────────────┘
+///                            │ WebSocket
+///                            ▼
+///                     ┌─────────────┐
+///                     │Relay Server │
+///                     └──────┬──────┘
+///                            │
+/// ┌──────────────────────────┼──────────────────────────────────────┐
+/// │                          ▼                                      │
+/// │  ┌──────────┐     ┌─────────────┐                               │
+/// │  │ Frontend │◄───►│ MiddleLayer │  (no backend on clients)      │
+/// │  └──────────┘     └─────────────┘                               │
+/// │                      Remote Client                              │
+/// └─────────────────────────────────────────────────────────────────┘
+/// ```
+///
+/// # Type Parameters
+///
+/// * `ServerRpcPayload` — Game actions sent by players (e.g., `PlacePiece { x, y }`)
+/// * `DeltaInformation` — Incremental state changes for animations
+/// * `Backend` — The [`BackEndArchitecture`] implementation for this game
+/// * `ViewState` — Complete game state for synchronizing new clients
+///
+/// # Lifecycle
+///
+/// 1. Create with [`generate_middle_layer()`](Self::generate_middle_layer)
+/// 2. Call [`update()`](Self::update) every frame
+/// 3. Check [`connection_state()`](Self::connection_state) to determine UI mode
+/// 4. When disconnected: call [`start_game_server()`](Self::start_game_server) or
+///    [`start_game_client()`](Self::start_game_client)
+/// 5. When connected: poll [`get_next_update()`](Self::get_next_update) and send
+///    actions via [`register_server_rpc()`](Self::register_server_rpc)
 pub struct MiddleLayer<ServerRpcPayload, DeltaInformation, Backend, ViewState>
 where
     ServerRpcPayload: SerializationCap,
@@ -144,15 +250,33 @@ where
 }
 
 impl<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
-    MiddleLayer<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
+MiddleLayer<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
 where
     ServerRpcPayload: SerializationCap,
     BackendArchitecture: BackEndArchitecture<ServerRpcPayload, DeltaInformation, ViewState>,
     DeltaInformation: SerializationCap + Clone,
     ViewState: SerializationCap + Clone,
 {
-    /// Creates the middle layer needs the connection string (which is server specific) and
-    /// the name of the game, which is game specific. Should be done before entering the game loop.
+    /// Creates a new middle layer instance in disconnected state.
+    ///
+    /// Call this once before entering the game loop. The instance starts
+    /// disconnected and ready to host or join a game.
+    ///
+    /// # Arguments
+    ///
+    /// * `connection_string` — WebSocket URL of the relay server
+    ///   (e.g., `"wss://board-game-hub.de/ws"`)
+    /// * `game_name` — Identifier for this game type, must match the relay
+    ///   server's `GameConfig.json` entry
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// let middle_layer = MiddleLayer::<MyRpc, MyDelta, MyBackend, MyState>::generate_middle_layer(
+    ///     "wss://board-game-hub.de/ws".to_string(),
+    ///     "reversi".to_string(),
+    /// );
+    /// ```
     pub fn generate_middle_layer(connection_string: String, game_name: String) -> Self {
         Self {
             server_context: None,
@@ -165,8 +289,24 @@ where
         }
     }
 
-    /// The update should be called once a frame from the main program. Typically that should be done at the beginning of the frame.
-    /// Afterwards the state information can be polled, frontend logic and rendering done.
+    /// Advances the middle layer state machine by one frame.
+    ///
+    /// This method must be called once per frame, typically at the beginning
+    /// of the game loop. It handles:
+    ///
+    /// - **Disconnected**: No-op, waiting for `start_game_server/client()`
+    /// - **AwaitingHandshake**: Polls WebSocket connection readiness
+    /// - **ExecutingHandshake**: Waits for server response with player ID
+    /// - **Connected (host)**: Processes timers, RPCs, network messages,
+    ///   drains backend commands, broadcasts updates
+    /// - **Connected (client)**: Sends queued RPCs, receives state updates
+    ///
+    /// After calling `update()`, poll state updates via `get_next_update()`
+    /// and check `connection_state()` for disconnection errors.
+    ///
+    /// # Arguments
+    ///
+    /// * `delta_time` — Seconds since last frame (used for timer updates on host)
     pub fn update(&mut self, delta_time: f32) {
         match self.connection_state {
             ConnectionState::Disconnected { error_string: _ } => {} // Nothing to do here.
@@ -193,26 +333,78 @@ where
         }
     }
 
-    /// Starts the game with an indicated game, room and rule variation as a server.
-    /// Should only be done in disconnected state.
+    /// Initiates hosting a new game room.
+    ///
+    /// Creates a room on the relay server and starts the local backend.
+    /// The connection progresses through `AwaitingHandshake` → `ExecutingHandshake`
+    /// → `Connected { is_server: true, player_id: 0, ... }`.
+    ///
+    /// # Arguments
+    ///
+    /// * `room_name` — Unique identifier for the room (shareable with other players)
+    /// * `rule_variation` — Game mode/variant passed to `BackEndArchitecture::new()`
+    ///
+    /// # Panics
+    ///
+    /// Panics if called while not in `Disconnected` state.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// if ui.button("Host Game").clicked() {
+    ///     middle_layer.start_game_server("my-room-123".to_string(), 0);
+    /// }
+    /// ```
     pub fn start_game_server(&mut self, room_name: String, rule_variation: u16) {
         self.connection_initialize(room_name, rule_variation, true);
     }
 
-    /// Starts the game as a client with a room name.
-    /// Should only be done in disconnected state.
+    /// Initiates joining an existing game room.
+    ///
+    /// Connects to a room hosted by another player. The connection progresses
+    /// through `AwaitingHandshake` → `ExecutingHandshake` → `Connected { is_server: false, ... }`.
+    ///
+    /// # Arguments
+    ///
+    /// * `room_name` — The room identifier (as shared by the host)
+    ///
+    /// # Panics
+    ///
+    /// Panics if called while not in `Disconnected` state.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// if ui.button("Join Game").clicked() {
+    ///     middle_layer.start_game_client(room_code_input.clone());
+    /// }
+    /// ```
     pub fn start_game_client(&mut self, room_name: String) {
         self.connection_initialize(room_name, 0, false);
     }
 
-    ///  Asks explicitly for a disconnection. Should be placed on a leave room button.
+    /// Gracefully disconnects from the current game.
+    ///
+    /// Notifies the relay server (so other players see the departure),
+    /// cleans up local state, and transitions to `Disconnected` state.
+    /// No-op if already disconnected.
+    ///
+    /// Typically bound to a "Leave Room" button in the UI.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// if ui.button("Leave Game").clicked() {
+    ///     middle_layer.disconnect();
+    /// }
+    /// ```
     pub fn disconnect(&mut self) {
         if let Some(connection) = self.core_connection.as_mut()
             && let ConnectionState::Connected {
-                is_server,
-                player_id: _,
-                rule_set: _,
-            } = self.connection_state
+            is_server,
+            player_id: _,
+            rule_set: _,
+        } = self.connection_state
         {
             connection.disconnect(is_server);
             self.mark_error("Disconnected from server".to_string());
@@ -220,18 +412,85 @@ where
         }
     }
 
-    /// Registers an rpc command that goes to the backend.
+    /// Queues a game action to be sent to the backend.
+    ///
+    /// The RPC is processed during the next `update()` call:
+    /// - **Host**: Delivered directly to the local backend
+    /// - **Client**: Serialized and sent over the network to the host
+    ///
+    /// RPCs are processed in order. Pre-validate actions on the frontend
+    /// to minimize invalid requests and network traffic.
+    ///
+    /// # Arguments
+    ///
+    /// * `payload` — The game-specific action (e.g., `MakeMove { x: 3, y: 4 }`)
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// if let Some(cell) = clicked_board_cell {
+    ///     middle_layer.register_server_rpc(GameRpc::PlacePiece { position: cell });
+    /// }
+    /// ```
     pub fn register_server_rpc(&mut self, payload: ServerRpcPayload) {
         self.rpc_que.push_back(payload);
     }
 
-    /// Gets the next update information if existent to be processed by the frontend.They can be polled once at a time
-    /// to process animation information over several heartbeats.
+    /// Retrieves the next pending state update for the frontend.
+    ///
+    /// Returns `None` if no updates are queued. Updates are delivered in order
+    /// and should be processed one at a time to enable frame-by-frame animation.
+    ///
+    /// # Update Types
+    ///
+    /// - [`ViewStateUpdate::Full`]: Hard-set all visuals immediately (no animation)
+    /// - [`ViewStateUpdate::Incremental`]: Apply with animation/transition
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// // Process one update per frame for smooth animations
+    /// if let Some(update) = middle_layer.get_next_update() {
+    ///     match update {
+    ///         ViewStateUpdate::Full(state) => {
+    ///             game_renderer.set_state(&state);
+    ///         }
+    ///         ViewStateUpdate::Incremental(delta) => {
+    ///             game_renderer.animate_delta(&delta);
+    ///         }
+    ///     }
+    /// }
+    /// ```
     pub fn get_next_update(&mut self) -> Option<ViewStateUpdate<ViewState, DeltaInformation>> {
         self.state_info_que.pop_front()
     }
-    /// Probes the current connection state. Especially interesting for dripping back to disconnected state for error handling.
-    /// Should be called once a frame on the client logic side after the heartbeat of the middle layer.
+
+    /// Returns the current connection state.
+    ///
+    /// Check this after each `update()` call to:
+    /// - Detect disconnection errors and display them to the user
+    /// - Determine whether to show lobby UI or game UI
+    /// - Access `player_id` and `rule_set` when connected
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// match middle_layer.connection_state() {
+    ///     ConnectionState::Disconnected { error_string } => {
+    ///         if let Some(err) = error_string {
+    ///             ui.label(format!("Error: {}", err));
+    ///         }
+    ///         show_lobby_ui();
+    ///     }
+    ///     ConnectionState::AwaitingHandshake | ConnectionState::ExecutingHandshake => {
+    ///         ui.label("Connecting...");
+    ///     }
+    ///     ConnectionState::Connected { player_id, .. } => {
+    ///         ui.label(format!("Playing as Player {}", player_id));
+    ///         show_game_ui();
+    ///     }
+    /// }
+    /// ```
     pub fn connection_state(&self) -> &ConnectionState {
         &self.connection_state
     }
