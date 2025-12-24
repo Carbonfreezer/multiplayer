@@ -295,13 +295,8 @@ impl BackEndArchitecture<RpcPayload, DeltaInformation, ViewState> for Backend {
     fn player_departure(&mut self, player_id: u8) { /* ... */ }
     fn inform_rpc(&mut self, player_id: u8, payload: RpcPayload) { /* ... */ }
     fn timer_triggered(&mut self, timer_id: u8) { /* ... */ }
-    fn get_view_state(&self) -> &ViewState  {
-        &self.view_state
-    }
-    
-    fn drain_commands(&mut self) -> Vec<BackendCommand<DeltaInformation>> {
-        std::mem::take(&mut self.command_list)
-    }
+    fn get_view_state(&self) -> &ViewState  { &self.view_state }
+    fn drain_commands(&mut self) -> Vec<BackendCommand<DeltaInformation>> { std::mem::take(&mut self.command_list) }
 }
 ```
 
@@ -404,7 +399,7 @@ Note that the relay server endpoints (`reload`, `enlist`, WebSocket connections)
 
 ## Systemd service
 
-Create `/etc/systemd/system/relay-server.service`:
+Create a user axumtokio and  `/etc/systemd/system/relay-server.service`:
 
 ```ini
 [Unit]
@@ -412,12 +407,18 @@ Description=Multiplayer Relay Server
 After=network.target
 
 [Service]
+Environment=RUST_LOG=info
 Type=simple
-User=www-data
-WorkingDirectory=/opt/relay-server
-ExecStart=/opt/relay-server/relay-server
+User=axumtokio
+Group=axumtokio
+WorkingDirectory=/home/axumtokio
+ExecStart=/home/axumtokio/relay-server
 Restart=on-failure
 RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
