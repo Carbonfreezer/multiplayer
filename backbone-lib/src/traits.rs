@@ -210,7 +210,7 @@ where
     /// - Optionally emit a [`BackendCommand::Delta`] announcing the join
     /// - Optionally emit [`BackendCommand::KickPlayer`] if joining is not allowed
     ///
-    /// Note: The player will receive a full [`ViewState`] automatically after
+    /// Note: The player will receive a full **ViewState** automatically after
     /// this method returns.
     fn player_arrival(&mut self, player: u16);
 
@@ -228,7 +228,7 @@ where
     /// - Validate the action (ignore or kick if invalid)
     /// - Update internal state
     /// - Emit appropriate [`BackendCommand::Delta`] messages
-    /// - Update the [`ViewState`] to match
+    /// - Update the **ViewState** to match
     ///
     /// # Arguments
     /// * `player` — The player ID who sent this action
