@@ -393,7 +393,7 @@ Note that the relay server endpoints (`reload`, `enlist`, WebSocket connections)
 
 ## Systemd service
 
-Create a user axumtokio and  `/etc/systemd/system/relay-server.service`:
+Create a user axumtokio, copy the relay server and the `GameConfig.json`into its home, pay attention that the relay server is executable, and add  `/etc/systemd/system/relay-server.service`:
 
 ```ini
 [Unit]
