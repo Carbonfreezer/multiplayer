@@ -46,7 +46,7 @@ This depot contains two JavaScript files from other projects, included here for 
 Before building this project, ensure you have the following installed:
 
 **Rust toolchain:**
-- Rust 1.70 or later (install via [rustup](https://rustup.rs/))
+- Rust 1.90 or later (install via [rustup](https://rustup.rs/))
 - The WASM target: `rustup target add wasm32-unknown-unknown`
 
 **For Linux/MacOS:**
