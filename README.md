@@ -311,23 +311,45 @@ use backbone_lib::middle_layer::MiddleLayer;
 
 #[macroquad::main("Your Game")]
 async fn main() {
-    let mut middle_layer: MiddleLayer<Backend> = MiddleLayer::new();
-    
-    loop {
-        middle_layer.heart_beat();
-        
-        match middle_layer.get_connection_state() {
-            ConnectionState::Disconnected => {
-                // Show connection UI
-            }
-            ConnectionState::Connected => {
-                // Run game logic, render, handle input
-            }
-        }
-        
-        next_frame().await;
-    }
-}
+    let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard> =
+         MiddleLayer::generate_middle_layer(
+             "ws://127.0.0.1:8080/ws".to_string(),
+             "my_fat_game".to_string(),
+        );
+       loop {
+         let delta_time = get_frame_time();
+         net_architecture.update(delta_time);
+
+         let state = net_architecture.connection_state().clone();
+         match state {
+             ConnectionState::Disconnected { error_string } => {
+                     // Process startup and connecting GUI here, and start server or client eventually.
+                      net_architecture
+                         .start_game_server(room, 0),
+             }
+             ConnectionState::Connected {
+                 is_server: _,
+                 player_id,
+                 rule_set,
+             } => {
+                 if let Some(update) = middle_layer.get_next_update() {
+                     match update {
+                         ViewStateUpdate::Full(state) => {
+                             // Process hard setting of view state
+                         }
+                         ViewStateUpdate::Incremental(delta) => {
+                             // Process any incremental information to produce animation.
+                         }
+                     }
+                 }
+                 // In the logic, we eventually create commands to be sent to the server.
+                 middle_layer.register_server_rpc(command);
+
+             }
+             _ => {}
+         }
+         next_frame().await
+     }
 ```
 
 ## 5. Register the game
@@ -391,7 +413,7 @@ Type=simple
 User=www-data
 WorkingDirectory=/opt/relay-server
 ExecStart=/opt/relay-server/relay-server
-Restart=always
+Restart=on-failure
 RestartSec=5
 
 [Install]
