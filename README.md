@@ -145,7 +145,7 @@ The site **enlist** shows the currently active rooms.
 
 ### Server maintenance
 
-The relay server includes a watchdog mechanism that cleans up inactive rooms every 5 minutes. Rooms without active connections are automatically removed to free resources.
+The relay server includes a watchdog mechanism that cleans up inactive rooms every 20 minutes. Rooms without active connections are automatically removed to free resources.
 
 The overall idea of the relay server is that two tokio tasks are servicing each connected client. The logic is split on the highest
 level, whether the connection belongs to the client-hosted server or a client. These tasks refer to internal communication channels
