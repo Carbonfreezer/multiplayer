@@ -29,9 +29,11 @@ fn window_conf() -> Conf {
     }
 }
 
-/// Does the system setup and then runs the core loop, where actions are decided upon the internal connection state.
+
 #[macroquad::main(window_conf)]
 async fn main() {
+    //! Does the system setup and then runs the core loop, where actions are decided upon the internal connection state.
+     
     // Origin is in the lower left corner
     let camera =
         Camera2D::from_display_rect(Rect::new(0.0, 0.0, ALL_WIDTH as f32, ALL_HEIGHT as f32));
