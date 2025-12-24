@@ -252,7 +252,7 @@ In `traits_implementation.rs`, define:
 use serde::{Deserialize, Serialize};
 
 // The complete game state sent to clients
-#[derive(Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ViewState {
     // Your game state fields
 }
