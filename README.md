@@ -106,14 +106,8 @@ The system contains the following components:
   of the initial game connection, and can send game mechanics-relevant input over an RPC. Then it can poll state changes from the middle layer to either
   hard-set the view state or perform animation transitions.
 
-## Serialization
-
-This project uses **postcard** for binary serialization instead of JSON. This design decision prioritizes performance and minimal message sizes, which is crucial for real-time multiplayer games. Messages are compact:
-- A typical game move (e.g., in Tic-Tac-Toe) requires only a few bytes
-- Full state synchronization is kept minimal by design
-
+This project uses **postcard** for binary serialization to prioritize performance and message size. 
 All data structures that need to be transmitted must derive `serde::Serialize` and `serde::Deserialize`.
-
 A more specific, detailed documentation gets generated when you run *cargo doc*, which is done automatically when you run the
 script in [Getting started](#Getting-started).
 
@@ -309,7 +303,7 @@ use backbone_lib::middle_layer::MiddleLayer;
 
 #[macroquad::main("Your Game")]
 async fn main() {
-    let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard> =
+    let mut net_architecture: MiddleLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
          MiddleLayer::generate_middle_layer(
              "ws://127.0.0.1:8080/ws".to_string(),
              "your-game".to_string(),
