@@ -34,13 +34,13 @@ pub const SERVER_DISCONNECT_MSG_SIZE: usize = 1;
 /// A client gets kicked, meant for the situation, when no more clients should get accepted. followed by u16 client id. The receiving tokio task has to act on its own. (Server -> Client)
 pub const CLIENT_GETS_KICKED: u8 = 1;
 
-/// Delta update. Followed by u16 amount of delta updates, followed by payload for every delta update.
+/// Delta update. Followed by payload for every delta update. May carry several delta messages in one pass.
 pub const DELTA_UPDATE: u8 = 2;
 
 /// Flagging a full update. Followed by payload for full update.
 pub const FULL_UPDATE: u8 = 3;
 
-/// The message to reset the game. This sets the internal status to not snyced.
+/// The message to reset the game. This is also followed by a full update. Difference is, that every client will get the full update.
 pub const RESET: u8 = 4;
 
 /// The error message we add.
