@@ -1,8 +1,9 @@
 # Introduction
 This project contains a multi-player game system in Rust, primarily designed for browser-based board games compiled as a WASM client. This project uses Axum/Tokio for the server, which also serves as a web server and a game-agnostic relay server. New games may even be added without
 restarting the server. This is contained in the project [relay-server](#relay-server). Second, it includes a [library](#backbone-library) to construct multiplayer (browser) games on. It follows the philosophy of the client-hosted server, where clients can send a remote procedure call to the server, and the server
-either sends delta updates or a whole view state to the clients. This is based on the network architecture of engines like Unity (NGO) or Unreal, though in a reduced form. This is contained in the library sub-project **backbone-lib**. The two components get interconnected
-over web sockets. Shared protocol identifiers are kept in the sub-project [protocol](#protocol). As an example, a simple multiplayer game has been included in **games/tic-tac-toe**. You can find this system running in a more elaborate form on [Board-Game-Hub](https://board-game-hub.de).
+either sends delta updates or a whole view state to the clients. This is based on the network architecture of engines like Unity (NGO) or Unreal, though in a reduced form. The two components get interconnected
+over web sockets. Shared protocol identifiers are kept in the sub-project [protocol](#protocol). As an example, a simple multiplayer game has been included in [games/tic-tac-toe](#tic-tac-toe). 
+You can find this system running in a more elaborate form on [Board-Game-Hub](https://board-game-hub.de).
 
 # Why look at this project
 Putting the central aspect aside, if you want to program multiplayer browser-based games, this project also contains some interesting solutions for problems I stumbled upon:
@@ -23,6 +24,15 @@ This depot contains two JavaScript files from other projects, included here for 
 # Getting started
 To get everything running as fast as possible, clone this repository and compile it with *BuildAll.bat* on Windows and *BuildAll.sh* on Linux. On Linux, you have to make the shell script executable upfront. Once this is done, you can start the relay server in the deploy directory. This starts a web server on port 8080. Now type http://127.0.0.1:8080 into your favourite browser. You should see a room creation screen. Start a second browser window and do the same here, and you can play tic-tac-toe against yourself. Opening the same page in two tabs is problematic because you have to switch tabs a couple of times to send the messages. 
 
+If you are new to Rust, this gets easily installed:
+For *Linux* and *MacOS* users, open a terminal and enter the following command:
+```
+curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+```
+For *Windows* users, get to the website
+[Windows Installer](https://www.rust-lang.org/tools/install)
+
+
 # General overview
 The overall architecture and idea of the system are sketched in the following image:
 
@@ -30,16 +40,16 @@ The overall architecture and idea of the system are sketched in the following im
 
 The system contains the following components:
 
-* **Relay-Server**: The game agnostic server, that has functionality for room and connection management, it is game agnostic. The main services it
-    provides forwarding of remote procedure calls from clients to the server and sending partial updates and complete View State changes to clients.
-* **View State**: Essentially a data structure that is controlled by the client-hosted server and sent to the clients. It may be sent entirely or as a series  
+* **Relay-Server**: This is the e game agnostic server, that has functionality for room and connection management. The main services it
+  provides are forwarding of remote procedure calls from clients to the server and sending partial updates and complete View State changes to clients.
+* **View State**: Essentially a data structure that is controlled by the client-hosted server and sent to the clients. It may be sent entirely or as a series
   of partial updates. The client typically receives a complete update upon joining the room or when the client-hosted server decides to do so, 
   which typically happens at the start of the new game. The Frontend may use partial View State updates to display transition animations.
 * **Backend**: This contains the real game logic and is entirely event-based, as the system has been primarily designed for board games in mind.
   The backend resides solely on the client-hosted server side and must implement the **BackEndArchitecture** trait. The backend has an internal
   view state. All incremental changes are logged in a *BackendCommand* vector and also need to get applied to an internally administrated
   view state, which may get sent over the network if required.
-* **Middle Layer**: This is the central part of the library **backbone-lib**. The middle layer receives requests from the front end and sends requests to the 
+* **Middle Layer**: This is the central part of the library [backbone-lib](#backbone-library). The middle layer receives requests from the front end and sends requests to the 
   backend on the server side. To have a clear chain of command and to avoid any confusion with smart pointers and RefCells, the backend does
   not send any commands to the middle layer, but builds a command buffer. This buffer may get polled from the middle layer. The middle layer
   is the nexus for all the information flow in the system. It also handles new players joining the client-hosted server, providing them with a full view-state update.
@@ -65,14 +75,14 @@ a reverse proxy like Caddy.
 The relay server loads a JSON file **GameConfig.json** on startup that contains the information on which games exist and what the 
 maximum number of players a room should hold. Setting this value to 0 means that there is no limitation.
 A simple JSON file looks like this:
-````
+```
 [
   {
     "name" : "tic-tac-toe",
     "max_players" : 10
   }
 ]
-````
+```
 More games may be added by extending the array. Once the server is running, the list of games may be extended during runtime.
 This may be done by calling the **reload** site with the browser on the domain where the relay server is running. 
 The site **enlist** shows the currently active rooms.
@@ -98,24 +108,25 @@ WASM plugin. The remaining relevant JavaScript files and a sample web page are a
 The Rust part of the web socket implementation can be found in **web_socket_interface.rs**, where the first part of the file is
 essentially abstracting over the relevant parts of the web socket functionality by using **ewbsock** in the non WASM part and 
 its own implementation in the WASM part. If you like to do a WebSocket implementation in a WASM context, this may be the point 
-to take a closer look at. 
-
+to take a closer look at.
 It provides communication and connection functionality, separated for the case that we are a client-hosted server or a pure 
 client. Sending is immediate, and receiving is on a polling basis. This should be performed in the heartbeat of the 
 game core loop and takes into account the fact that we can not run threads easily in a non-WASM environment.
 
 The module **traits** contains the trait **BackEndArchitecture**, which the application must implement. The core 
 logical functionality of the library is contained in **middle_layer**. These are the two modules mentioned in [General Overview](#general-overview).
-
 The **middle_layer** includes a bare-bones sample in its documentation of how a game should be structured. A more detailed
 example of this can be found in the section of [Tic-Tac-Toe](#tic-tac-toe). The middle layer is essentially a 
 logistical one for passing messages between the frontend, the backend, and the relay server. On top of this, it interfaces
 with a timer system. The timer system has been added because the backend, which has to be implemented by the game, is purely
 event-driven. The timer functionality is contained in the module **timer**.
 
-
-
 ## Tic-Tac-Toe
 
+Tic-Tac-Toe has been implemented as a minimal showcase of the system. It is also simplitic as it does not show any transition 
+animations on state changes. The project comes with a template web-page and two JavaScript files in the web subdirectory. These 
+JavaScript files are necessarry to activate the keyboard on mobile multitouch platforms. This is **enable_keyboard.js** and 
+**sapp_jsutils** mentioned in [Foreign sources](#foreign-sources). These files must be combined with the compiled WenAssembly and two 
+JavaScript files from [Backbone Library](#backbone-library) to form a running program. The batchfile [BuildAll](#getting-started) takes 
+care of this.
 
-egui and hidden text field trick.
