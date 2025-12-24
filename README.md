@@ -1,5 +1,5 @@
 # Introduction
-This project contains a multi-player game system in Rust, primarily designed for browser based board games compiled as a WASM client. This project uses Axum/Tokio for the server, which also serves as a web server and a game-agnostic relay server. New games may even be added without
+This project contains a multi-player game system in Rust, primarily designed for browser-based board games compiled as a WASM client. This project uses Axum/Tokio for the server, which also serves as a web server and a game-agnostic relay server. New games may even be added without
 restarting the server. This is contained in the project [relay-server](#relay-server). Second, it includes a [library](#backbone-library) to construct multiplayer (browser) games on. It follows the philosophy of the client-hosted server, where clients can send a remote procedure call to the server, and the server
 either sends delta updates or a whole view state to the clients. This is based on the network architecture of engines like Unity (NGO) or Unreal, though in a reduced form. This is contained in the library sub-project **backbone-lib**. The two components get interconnected
 over web sockets. Shared protocol identifiers are kept in the sub-project [protocol](#protocol). As an example, a simple multiplayer game has been included in **games/tic-tac-toe**. You can find this system running in a more elaborate form on [Board-Game-Hub](https://board-game-hub.de).
@@ -85,33 +85,33 @@ a full update of the view state, this decision is taken care of in the **send_lo
 
 To keep the relay server as game-agnostic as possible, only connection and disconnection processing is done here. Otherwise, 
 it passes on information for Client to Server RPCs, where only the player ID gets attached. In the reverse direction, it can kick a player,
-or send partial updates, full updates, or reset. A lot of error handling and tracing is done here, with error messages sent to the clients
+send partial updates, full updates, or reset. A lot of error handling and tracing is done here, with error messages sent to the clients
 before closing the connection.
 
 ## Backbone Library
-The backbone library contains in its web folder two JavaScript files, that become relevant when a WASM module gets compiled.
+The backbone library contains, in its web folder, two JavaScript files that become relevant when a WASM module gets compiled.
 This is the Macroquad library as mentioned [Foreign Sources](#foreign-sources) and a miniquad plugin to take care of the relevant web socket 
-implementation. The web socket implementation is limited here by having only one web socket at the time and by only sending and receiving
-binray messages. This is handled by the file **quad_ws.js** both files must be included in a web page, that is using the compiled
-WASM plugin. The remaing relevant JavaScript files and a sample web page are shown in the web directory of [Tic-Tac-Toe](#tic-tac-toe).
+implementation. The web socket implementation is limited here by having only one web socket at a time and by only sending and receiving
+binary messages. This is handled by the file **quad_ws.js**; both files must be included in a web page that is using the compiled
+WASM plugin. The remaining relevant JavaScript files and a sample web page are available in the [Tic-Tac-Toe](#tic-tac-toe) web directory.
 
-The Rust part of the web socket implementation can be found in **web_socket_iterface.rs**, where the first part of the file is
+The Rust part of the web socket implementation can be found in **web_socket_interface.rs**, where the first part of the file is
 essentially abstracting over the relevant parts of the web socket functionality by using **ewbsock** in the non WASM part and 
-the own implementation in the WASM part. If you like to do a web socket implementation in a WASM context this may the point 
+its own implementation in the WASM part. If you like to do a WebSocket implementation in a WASM context, this may be the point 
 to take a closer look at. 
 
-It provides communication and connection functionality separated again for the case that we are a client hosted server or a pure 
-client. Sending is done immediately and receiving is done on a polling basis. This should be performed in the heartbeat of the 
-game core loop and takes into account the fact, that we can not run threads easily in a non WASM environment.
+It provides communication and connection functionality, separated for the case that we are a client-hosted server or a pure 
+client. Sending is immediate, and receiving is on a polling basis. This should be performed in the heartbeat of the 
+game core loop and takes into account the fact that we can not run threads easily in a non-WASM environment.
 
-The module **traits** contains the trait **BackEndArchitecture**, that has to be implemented by the application. The core 
+The module **traits** contains the trait **BackEndArchitecture**, which the application must implement. The core 
 logical functionality of the library is contained in **middle_layer**. These are the two modules mentioned in [General Overview](#general-overview).
 
-The **middle_layer** comes with a bare bone sample documentation of how a game should be structured. A more detailed
-example of this can be found in the section of [Tic-Tac-Toe](#tic-tac-toe).The purpose of the middle layer is essentially a 
-logistiacal one for passing messages between the frontend, the backend and the relay server around. On top of this it interafaces
-with a timer system. The timer system has been added, because the backend, that has to be implemented by the game is purely
-event driven. The timer functionality is contained in the module **timer**.
+The **middle_layer** includes a bare-bones sample in its documentation of how a game should be structured. A more detailed
+example of this can be found in the section of [Tic-Tac-Toe](#tic-tac-toe). The middle layer is essentially a 
+logistical one for passing messages between the frontend, the backend, and the relay server. On top of this, it interfaces
+with a timer system. The timer system has been added because the backend, which has to be implemented by the game, is purely
+event-driven. The timer functionality is contained in the module **timer**.
 
 
 
