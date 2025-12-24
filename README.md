@@ -42,7 +42,7 @@ The system contains the following components:
 * **Middle Layer**: This is the central part of the library **backbone-lib**. The middle layer receives requests from the front end and sends requests to the 
   backend on the server side. To have a clear chain of command and to avoid any confusion with smart pointers and RefCells, the backend does
   not send any commands to the middle layer, but builds a command buffer. This buffer may get polled from the middle layer. The middle layer
-  is the nexus for all the information flow in the system. It also takes care of new players arriving on the client-hosted server, providing them with a full view-state update.
+  is the nexus for all the information flow in the system. It also handles new players joining the client-hosted server, providing them with a full view-state update.
 * **Frontend**: This is the main program written in Macroquad, which is based on a core game loop. It has to heartbeat the middle layer, takes care
   of the initial game connection, and can send game mechanics-relevant input over an RPC. Then it can poll state changes from the middle layer to either 
   hard-set the view state or perform animation transitions.
@@ -50,19 +50,18 @@ The system contains the following components:
 A more specific, detailed documentation gets generated when you run *cargo doc*, which is done automatically when you run the script in [Getting started](#Getting-started).
 
 # Detailed descriptions
-In the following subsections we will describe the different members of the workspace in a bit more detail.
+In the following subsections, we will describe the various members of the workspace in more detail.
 
 
 ## Protocol
-This library project simply contains some shared definitions between the relay server and the backbone library. As every message 
-is marked with a byte header the meaning of those headers and partially the size of the messages are encoded in constants here. 
-The structure **JoinRequest** contains the protocol information from a client to the relay server to join a game.
+This library project contains some shared definitions between the relay server and the backbone library. As every message is marked with a byte header, the meaning of those headers and, to some extent, the message sizes are encoded in constants here. 
+The structure **JoinRequest** contains the protocol information for a client to join a game via the relay server.
 
 ## Relay Server
-When started the relay server listens on port 8080. For practical deployment purposes, it is advisable to put it behind 
-a reverse proxy like caddy. 
-The relay server loads a JSON file **GameConfig.json** on startup that contains the information which games exist and what the 
-maximum number of players a room should hold. Setting this value to 0 means, that there is no limitation.
+When the relay server starts, it listens on port 8080. For practical deployment purposes, it is advisable to put it behind 
+a reverse proxy like Caddy. 
+The relay server loads a JSON file **GameConfig.json** on startup that contains the information on which games exist and what the 
+maximum number of players a room should hold. Setting this value to 0 means that there is no limitation.
 A simple JSON file looks like this:
 ````
 [
@@ -72,19 +71,19 @@ A simple JSON file looks like this:
   }
 ]
 ````
-More games may be added by extending the array. Once the server is running the list of games may be extended during runtime.
-This may be done by calling the **reload** site with the browser on the domain, where the relay server is running on. 
+More games may be added by extending the array. Once the server is running, the list of games may be extended during runtime.
+This may be done by calling the **reload** site with the browser on the domain where the relay server is running. 
 The site **enlist** shows the currently active rooms.
 
-The overall idea of the relay server is, that two tokio tasks are servicing each connected client. The logic is split on the highest
-level whether the connection belongs to the client hosted server or a client. These tasks refer to internal communication channels,
+The overall idea of the relay server is that two tokio tasks are servicing each connected client. The logic is split on the highest
+level, whether the connection belongs to the client-hosted server or a client. These tasks refer to internal communication channels
 that have been set up before in the handshake phase. These channels belong to a room (see **server_state**). This is an mpsc sender
-to send messages from the clients to the client hosted game server and a broad cast sender the other way around. As only new clients need
+to send messages from the clients to the client-hosted game server, and a broadcast sender the other way around. As only new clients need
 a full update of the view state, this decision is taken care of in the **send_logic_client** method.
 
-To keep the relay server as game agnostic as possible, only processing for connecting and disconnecting is done here. Otherwise, 
-is passes on information for Client to Server RPCs, where only the player id gets attached. In the reverse direction, it can kick a player,
-or send partial updates, full updates or reset. A lot of error handling and tracing is done here, with error messages sent to the clients
+To keep the relay server as game-agnostic as possible, only connection and disconnection processing is done here. Otherwise, 
+it passes on information for Client to Server RPCs, where only the player ID gets attached. In the reverse direction, it can kick a player,
+or send partial updates, full updates, or reset. A lot of error handling and tracing is done here, with error messages sent to the clients
 before closing the connection.
 
 
