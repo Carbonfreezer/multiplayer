@@ -71,7 +71,7 @@ The structure **JoinRequest** contains the protocol information for a client to 
 
 ## Relay Server
 When the relay server starts, it listens on port 8080. For practical deployment purposes, it is advisable to put it behind 
-a reverse proxy like Caddy. 
+a reverse proxy like [Caddy](https://caddyserver.com/). 
 The relay server loads a JSON file **GameConfig.json** on startup that contains the information on which games exist and what the 
 maximum number of players a room should hold. Setting this value to 0 means that there is no limitation.
 A simple JSON file looks like this:
@@ -122,11 +122,44 @@ with a timer system. The timer system has been added because the backend, which 
 event-driven. The timer functionality is contained in the module **timer**.
 
 ## Tic-Tac-Toe
-
 Tic-Tac-Toe has been implemented as a minimal showcase of the system. It is also simplitic as it does not show any transition 
 animations on state changes. The project comes with a template web-page and two JavaScript files in the web subdirectory. These 
 JavaScript files are necessarry to activate the keyboard on mobile multitouch platforms. This is **enable_keyboard.js** and 
 **sapp_jsutils** mentioned in [Foreign sources](#foreign-sources). These files must be combined with the compiled WenAssembly and two 
 JavaScript files from [Backbone Library](#backbone-library) to form a running program. The batchfile [BuildAll](#getting-started) takes 
 care of this.
+
+The **main** function initiates the architecture and then runs a core loop, where first the architecture gets updated 
+and the connection state is queried. When we are disconnected we want to show the logon gui and when we are connected we show the game.
+
+The logon gui is done with egui in the module **gui**. The first part **mobile_input** with the macro **focus_textline** is a
+workaround to get the keyboard activated on mobile devices for the text_edit_singleline in egui. The idea is to redirect the input to a 
+hidden text field in html and to redirect the input from there to the single edit textline. This works only in combination with the
+two JavaScript files mentioned above and the hidden textline element in the html page:
+```
+<input type="text" id="mobile-keyboard-input"
+       style="position: absolute; left: -9999px; opacity: 0;"
+       autocomplete="off" />
+```
+This may be in general of interest for you, if you intend to use egui with WASM and want to support mobile platforms. 
+
+For the case that we are connected we run the **update_real_game** method, that first drains the commands from the 
+middle layer, then renders the screen and finally processes the input if it is our turn. The turns gets processed by registering 
+an RPC with the middle layer. In the case of performing animations, you would stop draining commands when an animation is required,
+perform the animation in the update and continue draining commands, once this is finished. The rendering of the board is done with 
+macroquad functionality in the **graphics** module. This whole part is what is described as the **Frontend** in 
+[General Overview](#general-overview).
+
+The **View State** is implemented with the same name in **traits_implementation**. This also implements the **MoveCommand** which is
+used in the context of Tic-Tac-Toe as an **RpcPayload** and **DeltaInformation** at the same time. In more complex games this 
+double function is less likely to be the case.
+
+The module **Backend** contains the backend also mentioned in [General Overview](#general-overview). The logic is very simple here.
+On player arrival we decide if we want to kick the player depending on id and if players are allowed. On RPC processing we check the move,
+apply it to the local view state and generate the delta information update. Remember, in the backend always both have to be applied. 
+For the case that the game is over, we set a timer to automatically restart the game. Restarting the game switches the starting player and
+causes a full resync.
+
+
+
 
