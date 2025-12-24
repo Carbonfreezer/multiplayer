@@ -285,20 +285,23 @@ use backbone_lib::traits::BackEndArchitecture;
 
 pub struct Backend {
     view_state: ViewState,
+    command_list: Vec<BackendCommand<DeltaInformation>>,
     // Additional state
 }
 
-impl BackEndArchitecture for Backend {
-    type ViewState = ViewState;
-    type DeltaInformation = DeltaInformation;
-    type RpcPayload = RpcPayload;
-
-    fn get_view_state(&self) -> &Self::ViewState { /* ... */ }
+impl BackEndArchitecture<RpcPayload, DeltaInformation, ViewState> for Backend {
+    fn new(rule_variation: u16) -> Self { /* ... */ }
     fn player_arrival(&mut self, player_id: u8) -> bool { /* ... */ }
     fn player_departure(&mut self, player_id: u8) { /* ... */ }
-    fn process_rpc(&mut self, player_id: u8, payload: Self::RpcPayload) { /* ... */ }
-    fn drain_commands(&mut self) -> Vec<BackendCommand<Self::DeltaInformation>> { /* ... */ }
-    fn process_timer(&mut self, timer_id: u8) { /* ... */ }
+    fn inform_rpc(&mut self, player_id: u8, payload: RpcPayload) { /* ... */ }
+    fn timer_triggered(&mut self, timer_id: u8) { /* ... */ }
+    fn get_view_state(&self) -> &ViewState  {
+        &self.view_state
+    }
+    
+    fn drain_commands(&mut self) -> Vec<BackendCommand<DeltaInformation>> {
+        std::mem::take(&mut self.command_list)
+    }
 }
 ```
 
