@@ -1,4 +1,8 @@
-//! This module contains the room structure and the general app state.
+//! This module handles game rooms where players connect and exchange messages.
+//! It provides:
+//! - [`Room`]: A game session with host-to-client broadcast channels
+//! - [`AppState`]: Global state holding all active rooms and game configurations
+//! - [`reload_config`]: Hot-reloading of game settings from `GameConfig.json`
 
 
 use serde::{Deserialize, Serialize};
@@ -43,6 +47,7 @@ pub struct AppState {
     pub configs: RwLock<HashMap<String, u16>>,
 }
 
+/// Reloads the configuration file, that lists the games with the maximum number of players per room.
 pub async fn reload_config(state: &Arc<AppState>) -> Result<(), String> {
     let json_content = fs::read_to_string("GameConfig.json")
         .await

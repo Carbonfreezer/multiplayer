@@ -6,7 +6,7 @@
 use protocol::{CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HAND_SHAKE_RESPONSE_SIZE, NEW_CLIENT, NEW_CLIENT_MSG_SIZE, SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR, HAND_SHAKE_RESPONSE, JoinRequest};
 use crate::hand_shake::ClientServerSpecificData::{Client, Server};
 use crate::hand_shake::DisconnectEndpointSpecification::{DisconnectClient, DisconnectServer};
-use crate::server_state::{AppState, Room};
+use crate::lobby::{AppState, Room};
 use axum::extract::ws::Message::Binary;
 use axum::extract::ws::{ Message, WebSocket};
 use bytes::{BufMut, Bytes, BytesMut};

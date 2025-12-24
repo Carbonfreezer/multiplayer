@@ -149,7 +149,7 @@ The relay server includes a watchdog mechanism that cleans up inactive rooms eve
 
 The overall idea of the relay server is that two tokio tasks are servicing each connected client. The logic is split on the highest
 level, whether the connection belongs to the client-hosted server or a client. These tasks refer to internal communication channels
-that have been set up before in the handshake phase. These channels belong to a room (see **server_state**). This is an mpsc sender
+that have been set up before in the handshake phase. These channels belong to a room (see **lobby**). This is an mpsc sender
 to send messages from the clients to the client-hosted game server, and a broadcast sender the other way around. As only new clients need
 a full update of the view state, this decision is taken care of in the **send_logic_client** method.
 

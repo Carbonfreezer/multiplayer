@@ -1,13 +1,13 @@
 mod hand_shake;
 mod processing_module;
-mod server_state;
+mod lobby;
 
 use crate::hand_shake::{
     ClientServerSpecificData, DisconnectData, inform_client_of_connection, init_and_connect,
     shutdown_connection,
 };
 use crate::processing_module::{handle_client_logic, handle_server_logic};
-use crate::server_state::{AppState, reload_config};
+use crate::lobby::{AppState, reload_config};
 use axum::Router;
 use axum::extract::ws::WebSocket;
 use axum::extract::{State, WebSocketUpgrade};

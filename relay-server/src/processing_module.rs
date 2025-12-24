@@ -56,10 +56,7 @@ async fn receive_logic_server(
                     return "Server disconnected intentionally";
                 }
 
-                if (bytes[0] != CLIENT_GETS_KICKED)
-                    && (bytes[0] != DELTA_UPDATE)
-                    && (bytes[0] != FULL_UPDATE)
-                    && (bytes[0] != RESET)
+                if !matches!(bytes[0], CLIENT_GETS_KICKED | DELTA_UPDATE | FULL_UPDATE | RESET)
                 {
                     tracing::error!(
                     message_type = bytes[0],
@@ -98,9 +95,7 @@ async fn send_logic_server(
             tracing::error!("Illegal internal empty message in send logic server.");
             return "Illegal empty message received.";
         }
-        if (bytes[0] != NEW_CLIENT)
-            && (bytes[0] != CLIENT_DISCONNECTS)
-            && (bytes[0] != SERVER_RPC)
+        if !matches!(bytes[0], NEW_CLIENT | CLIENT_DISCONNECTS | SERVER_RPC)
         {
             tracing::error!(
                 message_type = bytes[0],
