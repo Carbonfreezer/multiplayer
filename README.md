@@ -61,7 +61,7 @@ rustup target add wasm32-unknown-unknown
 
 **Cross-compilation (optional):**
 If you want to cross-compile the relay server from Windows to Linux, you need:
-- [Zig](https://ziglang.org/download/) (for the linker)
+- [Zig](https://ziglang.org/download/) (for the linker) or easier `winget install zig.zig`
 - cargo-zigbuild: `cargo install cargo-zigbuild`
 
 # Getting started
@@ -393,7 +393,7 @@ Note that the relay server endpoints (`reload`, `enlist`, WebSocket connections)
 
 ## Systemd service
 
-Create a user axumtokio and  `/etc/systemd/system/relay-server.service`:
+Create a user axumtokio, copy the relay server and the `GameConfig.json`into its home, pay attention that the relay server is executable, and add  `/etc/systemd/system/relay-server.service`:
 
 ```ini
 [Unit]
