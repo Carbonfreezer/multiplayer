@@ -1,10 +1,12 @@
 //! This module contains a timer, that can generate events for the backend.
 
+/// A time entry contains the timer id and its remaining time.
 struct TimeEntry {
     id: u16,
     remaining_time: f32,
 }
 
+/// The timer structure has a vector of timers running.
 pub struct Timer {
     list_of_timers: Vec<TimeEntry>,
 }
@@ -28,7 +30,7 @@ impl Timer {
         self.list_of_timers.retain(|e| e.id != id);
     }
 
-    /// Updates and gets the list with the timers.
+    /// Updates and gets the list with the timers that have run out and should be flagged.
     pub fn update_and_get_list(&mut self, delta_time: f32) -> Vec<u16> {
         let mut result = Vec::new();
 
