@@ -61,7 +61,7 @@ rustup target add wasm32-unknown-unknown
 
 **Cross-compilation (optional):**
 If you want to cross-compile the relay server from Windows to Linux, you need:
-- [Zig](https://ziglang.org/download/) (for the linker)
+- [Zig](https://ziglang.org/download/) (for the linker) or easier `winget install zig.zig`
 - cargo-zigbuild: `cargo install cargo-zigbuild`
 
 # Getting started
