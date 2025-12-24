@@ -76,7 +76,7 @@ impl<T> SerializationCap for T where T: Serialize + DeserializeOwned {}
 /// | [`KickPlayer`](Self::KickPlayer) | Targeted disconnect | Rule enforcement |
 /// | [`SetTimer`](Self::SetTimer) | None (local only) | Turn limits, animations |
 /// | [`CancelTimer`](Self::CancelTimer) | None (local only) | Player acted in time |
-/// | [`TerminateRoom`](Self::TerminateRoom) | Disconnect everyone | Host left, fatal error |
+/// | [`TerminateRoom`](Self::TerminateRoom) | Disconnect everyone | Important player left, fatal error |
 pub enum BackendCommand<DeltaInformation>
 where
     DeltaInformation: SerializationCap,
