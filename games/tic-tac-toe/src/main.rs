@@ -12,7 +12,7 @@ mod tic_tac_toe_logic;
 use crate::graphics::Graphics;
 use crate::gui::{StartupGui, StartupResult, gui_setup};
 use crate::tic_tac_toe_logic::backend::TicTacToeLogic;
-use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand};
+use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand, GameState};
 use backbone_lib::middle_layer::{ConnectionState, MiddleLayer, ViewStateUpdate};
 use macroquad::prelude::{
     BLACK, Camera2D, Conf, MouseButton, Rect, Vec2, clear_background, get_frame_time,
@@ -122,10 +122,10 @@ fn update_real_game(
         || ((local_player == 1) && (!view_state.next_move_host));
 
     let text = match view_state.check_winning() {
-        1 => "Cross wins",
-        2 => "Circle wins",
-        3 => "Draw",
-        _ => {
+        GameState::CrossWins => "Cross wins",
+        GameState::CircleWins => "Circle wins",
+        GameState::Draw => "Draw",
+        GameState::Pending => {
             if local_player > 1 {
                 "Spectator"
             } else if my_turn {

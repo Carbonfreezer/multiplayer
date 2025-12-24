@@ -1,6 +1,6 @@
 //! The back end of tic tac toe. This is the part that only gets executed ont the server side.
 
-use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand};
+use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand, GameState};
 use backbone_lib::traits::{BackEndArchitecture, BackendCommand};
 
 /// The backend logic of tic tac toe is contained here,
@@ -49,7 +49,7 @@ impl BackEndArchitecture<MoveCommand, MoveCommand, ViewState> for TicTacToeLogic
 
     /// Check move for legality and if the game finished set the timer for restart.
     fn inform_rpc(&mut self, _: u16, payload: MoveCommand) {
-        if self.view_state.game_state != 0 {
+        if self.view_state.game_state != GameState::Pending {
             return;
         }
         // Returns illegal commands.
@@ -58,7 +58,7 @@ impl BackEndArchitecture<MoveCommand, MoveCommand, ViewState> for TicTacToeLogic
         }
         self.view_state.apply_move(&payload);
         self.command_list.push(BackendCommand::Delta(payload));
-        if self.view_state.game_state != 0 {
+        if self.view_state.game_state != GameState::Pending {
             self.command_list.push(BackendCommand::SetTimer {
                 timer_id: 0,
                 duration: 5.0,

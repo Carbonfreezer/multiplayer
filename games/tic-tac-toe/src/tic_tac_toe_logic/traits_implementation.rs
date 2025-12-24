@@ -21,8 +21,17 @@ pub struct ViewState {
     pub board: Vec<Vec<u8>>,
     /// Flags if the next mode is host or not.
     pub next_move_host: bool,
-    /// The game state. 0 : pending 1 : cross wins 2 : circle wins 3 : draw
-    pub game_state: u8,
+    /// The game state. 
+    pub game_state: GameState,
+}
+
+/// The situation we have, when we are in the game.
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
+pub enum GameState {
+    Pending,
+    CrossWins,
+    CircleWins,
+    Draw
 }
 
 impl ViewState {
@@ -36,7 +45,7 @@ impl ViewState {
         // Circle starts.
         ViewState {
             board,
-            game_state: 0,
+            game_state: GameState::Pending,
             next_move_host: is_host_starting,
         }
     }
@@ -72,16 +81,16 @@ impl ViewState {
     }
 
     /// 0 : pending 1 : cross wins 2 : circle wins 3 : draw
-    pub fn check_winning(&self) -> u8 {
+    pub fn check_winning(&self) -> GameState {
         if self.check_for(1) {
-            return 1;
+            return GameState::CrossWins;
         }
         if self.check_for(2) {
-            return 2;
+            return GameState::CircleWins;
         }
         if self.board.iter().flatten().all(|x| *x != 0) {
-            return 3;
+            return GameState::Draw;
         }
-        0
+        GameState::Pending
     }
 }
