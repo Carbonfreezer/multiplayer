@@ -21,7 +21,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 /// Activates error tracing, spawns a watch dog task to eliminate eventual  dead rooms, then it sets up the roting system to serve the
-/// web sockets and listen for the pages enlist and reload.
+/// web sockets and listen for the pages enlist and reload. The server listens on port 8080.
 async fn main() {
     tracing_subscriber::registry()
         .with(
@@ -129,7 +129,8 @@ async fn websocket_handler(
     ws.on_upgrade(|socket| websocket(socket, state))
 }
 
-/// Does the whole handling from start to finish.
+/// Does the whole handling from start to finish: Handshake -> Handling of logic depending on if we are connected to
+/// the server or client -> Shut down processing.
 async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     // By splitting, we can send and receive at the same time.
     let (mut sender, mut receiver) = stream.split();

@@ -1,3 +1,6 @@
+//! This module contains the room structure and the general app state.
+
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

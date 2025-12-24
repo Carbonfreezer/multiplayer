@@ -1,4 +1,5 @@
 //! The ids for messages that we use. They will be used consistent across the server and the client.
+//! Also contains the protocol structure for joining a game.
 
 use serde::{Deserialize, Serialize};
 

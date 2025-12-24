@@ -59,6 +59,8 @@ is marked with a byte header the meaning of those headers and partially the size
 The structure **JoinRequest** contains the protocol information from a client to the relay server to join a game.
 
 ## Relay Server
+When started the relay server listens on port 8080. For practical deployment purposes, it is advisable to put it behind 
+a reverse proxy like caddy. 
 The relay server loads a JSON file **GameConfig.json** on startup that contains the information which games exist and what the 
 maximum number of players a room should hold. Setting this value to 0 means, that there is no limitation.
 A simple JSON file looks like this:
@@ -73,6 +75,17 @@ A simple JSON file looks like this:
 More games may be added by extending the array. Once the server is running the list of games may be extended during runtime.
 This may be done by calling the **reload** site with the browser on the domain, where the relay server is running on. 
 The site **enlist** shows the currently active rooms.
+
+The overall idea of the relay server is, that two tokio tasks are servicing each connected client. The logic is split on the highest
+level whether the connection belongs to the client hosted server or a client. These tasks refer to internal communication channels,
+that have been set up before in the handshake phase. These channels belong to a room (see **server_state**). This is an mpsc sender
+to send messages from the clients to the client hosted game server and a broad cast sender the other way around. As only new clients need
+a full update of the view state, this decision is taken care of in the **send_logic_client** method.
+
+To keep the relay server as game agnostic as possible, only processing for connecting and disconnecting is done here. Otherwise, 
+is passes on information for Client to Server RPCs, where only the player id gets attached. In the reverse direction, it can kick a player,
+or send partial updates, full updates or reset. A lot of error handling and tracing is done here, with error messages sent to the clients
+before closing the connection.
 
 
 
