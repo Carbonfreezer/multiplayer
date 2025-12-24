@@ -285,10 +285,10 @@ pub struct Backend {
 
 impl BackEndArchitecture<RpcPayload, DeltaInformation, ViewState> for Backend {
     fn new(rule_variation: u16) -> Self { /* ... */ }
-    fn player_arrival(&mut self, player_id: u8) -> bool { /* ... */ }
-    fn player_departure(&mut self, player_id: u8) { /* ... */ }
-    fn inform_rpc(&mut self, player_id: u8, payload: RpcPayload) { /* ... */ }
-    fn timer_triggered(&mut self, timer_id: u8) { /* ... */ }
+    fn player_arrival(&mut self, player_id: u16) { /* ... */ }
+    fn player_departure(&mut self, player_id: u16) { /* ... */ }
+    fn inform_rpc(&mut self, player_id: u16, payload: RpcPayload) { /* ... */ }
+    fn timer_triggered(&mut self, timer_id: u16) { /* ... */ }
     fn get_view_state(&self) -> &ViewState  { &self.view_state }
     fn drain_commands(&mut self) -> Vec<BackendCommand<DeltaInformation>> { std::mem::take(&mut self.command_list) }
 }
