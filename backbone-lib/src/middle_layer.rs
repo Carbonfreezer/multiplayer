@@ -41,7 +41,7 @@
 //!             ConnectionState::Disconnected { error_string } => {
 //!                     // Process startup and connectin GUI here. and start server or client eventually.
 //!                      net_architecture
-//!                         .start_game_server(room, 0),
+//!                         .start_game_server(room, 0);
 //!             }
 //!             ConnectionState::Connected {
 //!                 is_server: _,
@@ -67,7 +67,6 @@
 //!
 //!         next_frame().await
 //!     }
-//!
 //! ```
 
 use crate::timer::Timer;
