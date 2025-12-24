@@ -45,6 +45,7 @@ pub async fn handle_server_logic(
     let mut receive_task =
         tokio::spawn(async move { receive_logic_server(receiver, internal_sender).await });
 
+    // If any one of the tasks run to completion, we abort the other.
     let result = tokio::select! {
         res_a = &mut send_task => {receive_task.abort(); res_a},
         res_b = &mut receive_task => {send_task.abort(); res_b},
@@ -79,6 +80,7 @@ async fn receive_logic_server(
                 }
 
                 if bytes[0] == SERVER_DISCONNECTS {
+                    // This something normal to be expected.
                     return "Server disconnected intentionally";
                 }
 
@@ -90,12 +92,16 @@ async fn receive_logic_server(
                     return "Illegal Server -> Client command.";
                 }
 
+                // All messages are simply passed through.
                 let res = internal_sender.send(bytes);
+                // An error may occur, if there are no further clients available.
+                // As a rule of a thumb the server should not send any messages, if he does not know of any clients.
+                // Currently logged as a warning, as it is unclear, if this is strictly avoidable.
                 if let Err(error) = res {
                     tracing::warn!(?error, "Sending to no clients.");
                 }
             }
-            Ok(_) => {} // Ignore non-binary messages (ping/pong handled by axum)
+            Ok(_) => {} // Ignore other messages (ping/pong handled by axum)
             Err(_) => {
                 return "Connection lost.";
             }
@@ -131,14 +137,14 @@ async fn send_logic_server(
             );
             return "Unknown internal Client->Server command";
         }
-
+        // Simply pass on the message.
         let res = enclosed.send(Message::Binary(bytes)).await;
         if let Err(err) = res {
             tracing::error!(?err, "Error in communication with server endpoint.");
             return "Error in communication with server endpoint.";
         }
     }
-
+    // In normal shutdown procedure that should not happen, because we are responsible for closing the channel.
     tracing::error!("Internal channel on server was unexpectedly closed.");
     "Internal channel closed."
 }
@@ -168,6 +174,7 @@ pub async fn handle_client_logic(
         async move { receive_logic_client(receiver, internal_sender, player_id).await },
     );
 
+    // If any one of the tasks run to completion, we abort the other.
     let result = tokio::select! {
         res_a = &mut send_task => {receive_task.abort(); res_a},
         res_b = &mut receive_task => {send_task.abort(); res_b},
@@ -224,7 +231,7 @@ async fn receive_logic_client(
                     }
                 }
             }
-            Ok(_) => {} // Ignore non-binary messages
+            Ok(_) => {} // Ignore other messages
             Err(_) => {
                 return "Connection lost.";
             }
@@ -292,6 +299,7 @@ async fn send_logic_client(
                         }
                         bytes.get_u8(); // Skip command byte
                         let meant_client = bytes.get_u16();
+                        // We have to see if  we are meant.
                         if meant_client == player_id {
                             return "We got rejected by server.";
                         }
@@ -324,6 +332,7 @@ async fn send_logic_client(
                         // Drop redundant full updates for already synced clients
                     }
                     RESET => {
+                        // We simply forward the message and are definitively synced here.
                         is_synced = true;
                         let res = enclosed.send(Message::Binary(bytes)).await;
                         if let Err(error) = res {
