@@ -312,7 +312,7 @@ async fn main() {
     let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard> =
          MiddleLayer::generate_middle_layer(
              "ws://127.0.0.1:8080/ws".to_string(),
-             "my_fat_game".to_string(),
+             "your-game".to_string(),
         );
        loop {
          let delta_time = get_frame_time();
