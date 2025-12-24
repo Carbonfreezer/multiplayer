@@ -41,8 +41,8 @@
 //! }
 //! ```
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 /// Marker trait for types that can be serialized with postcard.
 ///

@@ -3,16 +3,20 @@
 //! WASM Client -> Websocket: postcard serialized join request.
 //! Websocket -> WASM Client: u16 player id, u16 rule variation.
 
-use protocol::{CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HAND_SHAKE_RESPONSE_SIZE, NEW_CLIENT, NEW_CLIENT_MSG_SIZE, SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR, HAND_SHAKE_RESPONSE, JoinRequest};
 use crate::hand_shake::ClientServerSpecificData::{Client, Server};
 use crate::hand_shake::DisconnectEndpointSpecification::{DisconnectClient, DisconnectServer};
 use crate::lobby::{AppState, Room};
 use axum::extract::ws::Message::Binary;
-use axum::extract::ws::{ Message, WebSocket};
+use axum::extract::ws::{Message, WebSocket};
 use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use postcard::from_bytes;
+use protocol::{
+    CHANNEL_BUFFER_SIZE, CLIENT_DISCONNECT_MSG_SIZE, CLIENT_DISCONNECTS, HAND_SHAKE_RESPONSE,
+    HAND_SHAKE_RESPONSE_SIZE, JoinRequest, NEW_CLIENT, NEW_CLIENT_MSG_SIZE,
+    SERVER_DISCONNECT_MSG_SIZE, SERVER_DISCONNECTS, SERVER_ERROR,
+};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -20,15 +24,14 @@ use tokio::sync::{broadcast, mpsc};
 
 /// Is called on error, sends a text message because e-websocket can not interpret closing messages.
 /// This text message is encoded as a binary message.
-async fn send_closing_message( sender: &mut SplitSink<WebSocket, Message>, closing_message: String) {
-
+async fn send_closing_message(sender: &mut SplitSink<WebSocket, Message>, closing_message: String) {
     let raw_data = closing_message.as_bytes();
     let mut msg = BytesMut::with_capacity(1 + raw_data.len());
     msg.put_u8(SERVER_ERROR);
     msg.put_slice(raw_data);
 
     let _ = sender.send(Message::Binary(msg.into())).await;
-    let _ =sender.send(Message::Close(None)).await;
+    let _ = sender.send(Message::Close(None)).await;
 }
 
 /// The handshake result we get for the joining the room.
@@ -69,7 +72,6 @@ pub enum DisconnectEndpointSpecification {
     DisconnectClient(Sender<Bytes>),
 }
 
-
 /// Construction of DisconnectData from Handshake result.
 impl From<&HandshakeResult> for DisconnectData {
     fn from(value: &HandshakeResult) -> Self {
@@ -104,7 +106,6 @@ struct InitialConnectionResult {
     /// The maximum amount of players a room allows (0 = infinite).
     max_players: u16,
 }
-
 
 /// Reads in the join request from the web socket, verifies if game exists and generates the final room name.
 async fn get_initial_query(
@@ -186,7 +187,6 @@ pub async fn init_and_connect(
     receiver: &mut SplitStream<WebSocket>,
     state: Arc<AppState>,
 ) -> Option<HandshakeResult> {
-
     let start_result = get_initial_query(sender, receiver, state.clone()).await?;
 
     if start_result.is_server {
@@ -205,31 +205,42 @@ async fn process_handshake_client(
     let mut rooms = state.rooms.lock().await;
     let Some(local_room) = rooms.get_mut(&initial_result.compound_room_id) else {
         drop(rooms);
-        send_closing_message(sender, format!(
-                    "Room {} does not exist for game {}.",
-                    &initial_result.room_id, &initial_result.game_id)).await;
+        send_closing_message(
+            sender,
+            format!(
+                "Room {} does not exist for game {}.",
+                &initial_result.room_id, &initial_result.game_id
+            ),
+        )
+        .await;
         return None;
     };
 
     // Do we fit in? max_players == 0 means "infinite".
     // Use >= so we reject if the room is already at/over capacity (defensive if state was inconsistent).
-    if initial_result.max_players != 0 && local_room.amount_of_players >= initial_result.max_players {
+    if initial_result.max_players != 0 && local_room.amount_of_players >= initial_result.max_players
+    {
         drop(rooms);
-        send_closing_message(sender,  format!(
-            "Room  {} exceeded max amount of players {}.",
-            &initial_result.room_id, initial_result.max_players
-        )).await;
+        send_closing_message(
+            sender,
+            format!(
+                "Room  {} exceeded max amount of players {}.",
+                &initial_result.room_id, initial_result.max_players
+            ),
+        )
+        .await;
         return None;
     }
-    
+
     // Save guard against the case, that we have run out of client ids.
-    if local_room.next_client_id >  u16::MAX - 100 {
+    if local_room.next_client_id > u16::MAX - 100 {
         drop(rooms);
-        send_closing_message(sender,  format!(
-            "Room {} run out of client ids.",
-            &initial_result.room_id
-        )).await;
-        tracing::error!( "Server run out of client ids.");
+        send_closing_message(
+            sender,
+            format!("Room {} run out of client ids.", &initial_result.room_id),
+        )
+        .await;
+        tracing::error!("Server run out of client ids.");
         return None;
     }
 
@@ -256,7 +267,7 @@ async fn process_handshake_client(
         }
         drop(rooms);
         tracing::error!(?error, "Server unexpectedly left during handshake");
-        send_closing_message(sender,  "Server unexpectedly left during handshake".into()).await;
+        send_closing_message(sender, "Server unexpectedly left during handshake".into()).await;
         return None;
     }
 
@@ -279,10 +290,14 @@ async fn process_handshake_server(
     let mut rooms = state.rooms.lock().await;
     if rooms.contains_key(&initial_result.compound_room_id) {
         drop(rooms);
-        send_closing_message(sender, format!(
-            "Room {} already exists for game {}.",
-            &initial_result.room_id, &initial_result.game_id
-        )).await;
+        send_closing_message(
+            sender,
+            format!(
+                "Room {} already exists for game {}.",
+                &initial_result.room_id, &initial_result.game_id
+            ),
+        )
+        .await;
         // User error no need for error tracing.
         return None;
     }

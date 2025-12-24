@@ -250,7 +250,7 @@ where
 }
 
 impl<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
-MiddleLayer<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
+    MiddleLayer<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
 where
     ServerRpcPayload: SerializationCap,
     BackendArchitecture: BackEndArchitecture<ServerRpcPayload, DeltaInformation, ViewState>,
@@ -401,10 +401,10 @@ where
     pub fn disconnect(&mut self) {
         if let Some(connection) = self.core_connection.as_mut()
             && let ConnectionState::Connected {
-            is_server,
-            player_id: _,
-            rule_set: _,
-        } = self.connection_state
+                is_server,
+                player_id: _,
+                rule_set: _,
+            } = self.connection_state
         {
             connection.disconnect(is_server);
             self.mark_error("Disconnected from server".to_string());

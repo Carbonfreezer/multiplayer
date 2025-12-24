@@ -1,11 +1,15 @@
 //! Does all communication related stuff with the web sockets.
 //! Uses ewebsock for native builds and own implementation for WASM builds.
 
-use protocol::{JoinRequest, CLIENT_DISCONNECTS, CLIENT_DISCONNECTS_SELF, CLIENT_GETS_KICKED, CLIENT_ID_SIZE, DELTA_UPDATE, FULL_UPDATE, HAND_SHAKE_RESPONSE, NEW_CLIENT, RESET, SERVER_DISCONNECTS, SERVER_ERROR, SERVER_RPC};
 use crate::middle_layer::ViewStateUpdate;
 use crate::traits::SerializationCap;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use postcard::{from_bytes, take_from_bytes, to_stdvec};
+use protocol::{
+    CLIENT_DISCONNECTS, CLIENT_DISCONNECTS_SELF, CLIENT_GETS_KICKED, CLIENT_ID_SIZE, DELTA_UPDATE,
+    FULL_UPDATE, HAND_SHAKE_RESPONSE, JoinRequest, NEW_CLIENT, RESET, SERVER_DISCONNECTS,
+    SERVER_ERROR, SERVER_RPC,
+};
 
 #[cfg(not(target_arch = "wasm32"))]
 use ewebsock::WsEvent::{Closed, Error, Message};

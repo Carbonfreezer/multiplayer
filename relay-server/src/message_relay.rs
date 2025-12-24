@@ -16,11 +16,11 @@ use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
 use protocol::*;
 use std::sync::Arc;
-use tokio::sync::broadcast;
-use tokio::sync::broadcast::error::RecvError;
-use tokio::sync::broadcast::Sender;
-use tokio::sync::mpsc::Receiver;
 use tokio::sync::Mutex;
+use tokio::sync::broadcast;
+use tokio::sync::broadcast::Sender;
+use tokio::sync::broadcast::error::RecvError;
+use tokio::sync::mpsc::Receiver;
 
 /// Spawns bidirectional message handlers for a game host connection.
 ///
@@ -84,7 +84,10 @@ async fn receive_logic_server(
                     return "Server disconnected intentionally";
                 }
 
-                if !matches!(bytes[0], CLIENT_GETS_KICKED | DELTA_UPDATE | FULL_UPDATE | RESET) {
+                if !matches!(
+                    bytes[0],
+                    CLIENT_GETS_KICKED | DELTA_UPDATE | FULL_UPDATE | RESET
+                ) {
                     tracing::error!(
                         message_type = bytes[0],
                         "Illegal message type Server->Client."
@@ -170,9 +173,10 @@ pub async fn handle_client_logic(
     let mut send_task =
         tokio::spawn(async move { send_logic_client(sender, internal_receiver, player_id).await });
 
-    let mut receive_task = tokio::spawn(
-        async move { receive_logic_client(receiver, internal_sender, player_id).await },
-    );
+    let mut receive_task =
+        tokio::spawn(
+            async move { receive_logic_client(receiver, internal_sender, player_id).await },
+        );
 
     // If any one of the tasks run to completion, we abort the other.
     let result = tokio::select! {

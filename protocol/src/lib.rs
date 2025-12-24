@@ -22,7 +22,7 @@ pub const CLIENT_DISCONNECT_MSG_SIZE: usize = 3;
 pub const SERVER_RPC: u8 = 2;
 
 /// The disconnection message that is used for disconnecting without any arguments, that gets passed through the web socket layer.
-pub const CLIENT_DISCONNECTS_SELF : u8 = 3;
+pub const CLIENT_DISCONNECTS_SELF: u8 = 3;
 
 // Server -> Client
 

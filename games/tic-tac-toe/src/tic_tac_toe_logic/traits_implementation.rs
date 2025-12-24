@@ -21,7 +21,7 @@ pub struct ViewState {
     pub board: Vec<Vec<u8>>,
     /// Flags if the next mode is host or not.
     pub next_move_host: bool,
-    /// The game state. 
+    /// The game state.
     pub game_state: GameState,
 }
 
@@ -31,7 +31,7 @@ pub enum GameState {
     Pending,
     CrossWins,
     CircleWins,
-    Draw
+    Draw,
 }
 
 impl ViewState {

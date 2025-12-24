@@ -12,7 +12,7 @@ mod tic_tac_toe_logic;
 use crate::graphics::Graphics;
 use crate::gui::{StartupGui, StartupResult, gui_setup};
 use crate::tic_tac_toe_logic::backend::TicTacToeLogic;
-use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand, GameState};
+use crate::tic_tac_toe_logic::traits_implementation::{GameState, MoveCommand, ViewState};
 use backbone_lib::middle_layer::{ConnectionState, MiddleLayer, ViewStateUpdate};
 use macroquad::prelude::{
     BLACK, Camera2D, Conf, MouseButton, Rect, Vec2, clear_background, get_frame_time,
@@ -29,11 +29,10 @@ fn window_conf() -> Conf {
     }
 }
 
-
 #[macroquad::main(window_conf)]
 async fn main() {
     //! Does the system setup and then runs the core loop, where actions are decided upon the internal connection state.
-     
+
     // Origin is in the lower left corner
     let camera =
         Camera2D::from_display_rect(Rect::new(0.0, 0.0, ALL_WIDTH as f32, ALL_HEIGHT as f32));

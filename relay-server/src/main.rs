@@ -1,13 +1,13 @@
 mod hand_shake;
-mod message_relay;
 mod lobby;
+mod message_relay;
 
 use crate::hand_shake::{
     ClientServerSpecificData, DisconnectData, inform_client_of_connection, init_and_connect,
     shutdown_connection,
 };
-use crate::message_relay::{handle_client_logic, handle_server_logic};
 use crate::lobby::{AppState, reload_config};
+use crate::message_relay::{handle_client_logic, handle_server_logic};
 use axum::Router;
 use axum::extract::ws::WebSocket;
 use axum::extract::{State, WebSocketUpgrade};
@@ -53,7 +53,6 @@ async fn main() {
         tracing::error!(message, "Initial load error.");
         panic!("Initial load error: {}", message);
     }
-
 
     let app = Router::new()
         .route("/reload", get(reload_handler))

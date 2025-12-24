@@ -1,6 +1,6 @@
 //! The back end of tic tac toe. This is the part that only gets executed ont the server side.
 
-use crate::tic_tac_toe_logic::traits_implementation::{ViewState, MoveCommand, GameState};
+use crate::tic_tac_toe_logic::traits_implementation::{GameState, MoveCommand, ViewState};
 use backbone_lib::traits::{BackEndArchitecture, BackendCommand};
 
 /// The backend logic of tic tac toe is contained here,
