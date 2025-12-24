@@ -27,7 +27,7 @@
 //! A rough usage example looks like this:
 //! ```text
 //!
-//!    let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, GameBoard> =
+//!    let mut net_architecture: MiddleLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
 //!         MiddleLayer::generate_middle_layer(
 //!             "ws://127.0.0.1:8080/ws".to_string(),
 //!             "my_fat_game".to_string(),
