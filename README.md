@@ -410,10 +410,6 @@ ExecStart=/home/axumtokio/relay-server
 Restart=on-failure
 RestartSec=5
 
-# Hardening
-NoNewPrivileges=true
-PrivateTmp=true
-
 [Install]
 WantedBy=multi-user.target
 ```
