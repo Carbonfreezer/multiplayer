@@ -56,9 +56,9 @@ impl<'a> Graphics<'a> {
             text,
             position
                 - Vec2 {
-                x: size.width / 2.0,
-                y: size.height / 2.0,
-            },
+                    x: size.width / 2.0,
+                    y: size.height / 2.0,
+                },
             font_size,
         );
     }
@@ -114,5 +114,4 @@ impl<'a> Graphics<'a> {
         draw_circle(x_center, y_center, ICON_SIZE, WHITE);
         draw_circle(x_center, y_center, ICON_SIZE - 2.0, BLACK);
     }
-    
 }

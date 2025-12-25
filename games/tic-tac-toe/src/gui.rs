@@ -8,7 +8,6 @@
 
 use egui_macroquad::egui;
 
-
 #[cfg(target_arch = "wasm32")]
 pub mod mobile_input {
     use sapp_jsutils::JsObject;

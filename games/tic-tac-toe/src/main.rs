@@ -1,4 +1,4 @@
-//! This is a relative minimalistic test program to showcase the functionality of the multiplayer 
+//! This is a relative minimalistic test program to showcase the functionality of the multiplayer
 //! network library.
 //! - [`amain`] : Does the setup and determines between GUI logon phase and game interaction phase.
 //! - [`update_real_game`] : Does the real game update on the front end.
@@ -17,7 +17,9 @@ mod tic_tac_toe_logic;
 use crate::graphics::Graphics;
 use crate::gui::{StartupGui, StartupResult, gui_setup};
 use crate::tic_tac_toe_logic::backend::TicTacToeLogic;
-use crate::tic_tac_toe_logic::traits_implementation::{GameState, ViewStateDelta, ViewState, StonePlacement};
+use crate::tic_tac_toe_logic::traits_implementation::{
+    GameState, StonePlacement, ViewState, ViewStateDelta,
+};
 use backbone_lib::middle_layer::{ConnectionState, MiddleLayer, ViewStateUpdate};
 use macroquad::prelude::{
     BLACK, Camera2D, Conf, MouseButton, Rect, Vec2, clear_background, get_frame_time,
@@ -44,11 +46,15 @@ async fn main() {
     set_camera(&camera);
 
     let graphics = Graphics::new(&camera);
-    let mut net_architecture: MiddleLayer<StonePlacement, ViewStateDelta, TicTacToeLogic, ViewState> =
-        MiddleLayer::generate_middle_layer(
-            "ws://127.0.0.1:8080/ws".to_string(),
-            "tic-tac-toe".to_string(),
-        );
+    let mut net_architecture: MiddleLayer<
+        StonePlacement,
+        ViewStateDelta,
+        TicTacToeLogic,
+        ViewState,
+    > = MiddleLayer::generate_middle_layer(
+        "ws://127.0.0.1:8080/ws".to_string(),
+        "tic-tac-toe".to_string(),
+    );
 
     let mut view_state: Option<ViewState> = None;
 

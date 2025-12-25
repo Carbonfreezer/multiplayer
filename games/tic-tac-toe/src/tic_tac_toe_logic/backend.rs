@@ -1,7 +1,9 @@
 //! The back end of tic-tac-toe. This is the part that only gets executed ont the server side.
 //! and implements [`BackEndArchitecture`].
 
-use crate::tic_tac_toe_logic::traits_implementation::{GameState, ViewStateDelta, ViewState, StonePlacement};
+use crate::tic_tac_toe_logic::traits_implementation::{
+    GameState, StonePlacement, ViewState, ViewStateDelta,
+};
 use backbone_lib::traits::{BackEndArchitecture, BackendCommand};
 
 /// The backend logic of tic-tac-toe is contained here,
@@ -25,9 +27,9 @@ impl TicTacToeLogic {
     }
 }
 
-/// The implementation of [`BackEndArchitecture`]. 
+/// The implementation of [`BackEndArchitecture`].
 /// The implementations of the diverse components are as follows:
-/// 
+///
 /// - [`StonePlacement`] contains the command to place a stone at a certain position.
 /// - [`ViewStateDelta`] contains the change of the view state to a new game situation.
 /// - [`ViewState`] contains the board representation, that is used for visualization and game state checking.
@@ -58,7 +60,7 @@ impl BackEndArchitecture<StonePlacement, ViewStateDelta, ViewState> for TicTacTo
     }
 
     /// Check move for legality and if the game finished set the timer for restart.
-    fn inform_rpc(&mut self, player_id : u16, payload: StonePlacement) {
+    fn inform_rpc(&mut self, player_id: u16, payload: StonePlacement) {
         if self.view_state.game_state != GameState::Pending {
             return;
         }
@@ -66,7 +68,11 @@ impl BackEndArchitecture<StonePlacement, ViewStateDelta, ViewState> for TicTacTo
         if !self.view_state.check_legality(&payload, player_id) {
             return;
         }
-        let delta = ViewStateDelta{ is_circle: (player_id == 0), column: payload.column, row: payload.row};
+        let delta = ViewStateDelta {
+            is_circle: (player_id == 0),
+            column: payload.column,
+            row: payload.row,
+        };
         self.view_state.apply_delta(&delta);
         self.command_list.push(BackendCommand::Delta(delta));
         if self.view_state.game_state != GameState::Pending {

@@ -65,15 +65,16 @@ impl ViewState {
 
     /// Applies a change to the game board.
     pub fn apply_delta(&mut self, delta: &ViewStateDelta) {
-        self.board[delta.row as usize][delta.column as usize] =
-            if delta.is_circle { 2 } else { 1 };
+        self.board[delta.row as usize][delta.column as usize] = if delta.is_circle { 2 } else { 1 };
         self.next_move_host = !self.next_move_host;
         self.game_state = self.check_winning();
     }
 
     /// Checks if the move is legal. This is if it is the correct players turn and the field is still free.
-    pub fn check_legality(&self, move_data: &StonePlacement, player_id : u16) -> bool {
-        if player_id > 1 {return false}
+    pub fn check_legality(&self, move_data: &StonePlacement, player_id: u16) -> bool {
+        if player_id > 1 {
+            return false;
+        }
         if (player_id == 0) != self.next_move_host {
             return false;
         }
