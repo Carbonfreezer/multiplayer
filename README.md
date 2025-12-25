@@ -89,7 +89,7 @@ The overall architecture and idea of the system are sketched in the following im
 
 The system contains the following components:
 
-* **Relay-Server**: This is the game agnostic server, that has functionality for room and connection management. The main services it
+* **Relay-Server**: This is the game-agnostic server that has functionality for room and connection management. The main services it
   provides are forwarding of remote procedure calls from clients to the server and sending partial updates and complete View State changes to clients.
 * **View State**: Essentially a data structure that is controlled by the client-hosted server and sent to the clients. It may be sent entirely or as a series
   of partial updates. The client typically receives a complete update upon joining the room or when the client-hosted server decides to do so,
