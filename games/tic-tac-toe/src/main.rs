@@ -164,7 +164,9 @@ fn update_real_game(
                 column: x_pos as u8,
                 row: y_pos as u8,
             };
-            middle_layer.register_server_rpc(command);
+            if view_state.check_legality(&command) {
+                middle_layer.register_server_rpc(command);
+            }
         }
     }
 }

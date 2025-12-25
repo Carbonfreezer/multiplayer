@@ -58,7 +58,7 @@ impl ViewState {
         self.game_state = self.check_winning();
     }
 
-    /// Checks if the move is legal.
+    /// Checks if the move is legal. This is if it is the correct players turn and the field is still free.
     pub fn check_legality(&self, move_data: &MoveCommand) -> bool {
         if move_data.is_host != self.next_move_host {
             return false;
