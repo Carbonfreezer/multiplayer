@@ -102,8 +102,8 @@ async fn enlist_handler(State(state): State<Arc<AppState>>) -> String {
 /// Forces the reload of the config file and lists the content. This enables the adding of new games
 /// without restarting the service.
 async fn reload_handler(State(state): State<Arc<AppState>>) -> String {
-    let error = reload_config(&state).await;
-    match error {
+    let res = reload_config(&state).await;
+    match res {
         Ok(_) => state
             .configs
             .read()
