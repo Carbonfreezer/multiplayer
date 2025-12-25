@@ -1,3 +1,8 @@
+//! This is a relative minimalistic test program to showcase the functionality of the multiplayer 
+//! network library.
+//! - [`amain`] : Does the setup and determines between GUI logon phase and game interaction phase.
+//! - [`update_real_game`] : Does the real game update on the front end.
+
 #![windows_subsystem = "windows"]
 
 /// Desired window width.
@@ -12,7 +17,7 @@ mod tic_tac_toe_logic;
 use crate::graphics::Graphics;
 use crate::gui::{StartupGui, StartupResult, gui_setup};
 use crate::tic_tac_toe_logic::backend::TicTacToeLogic;
-use crate::tic_tac_toe_logic::traits_implementation::{GameState, MoveCommand, ViewState};
+use crate::tic_tac_toe_logic::traits_implementation::{GameState, ViewStateDelta, ViewState, StonePlacement};
 use backbone_lib::middle_layer::{ConnectionState, MiddleLayer, ViewStateUpdate};
 use macroquad::prelude::{
     BLACK, Camera2D, Conf, MouseButton, Rect, Vec2, clear_background, get_frame_time,
@@ -39,7 +44,7 @@ async fn main() {
     set_camera(&camera);
 
     let graphics = Graphics::new(&camera);
-    let mut net_architecture: MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, ViewState> =
+    let mut net_architecture: MiddleLayer<StonePlacement, ViewStateDelta, TicTacToeLogic, ViewState> =
         MiddleLayer::generate_middle_layer(
             "ws://127.0.0.1:8080/ws".to_string(),
             "tic-tac-toe".to_string(),
@@ -101,7 +106,7 @@ async fn main() {
 /// finally it sends any potential mouse clicks as stone setting commands to the server.
 fn update_real_game(
     graphics: &Graphics,
-    middle_layer: &mut MiddleLayer<MoveCommand, MoveCommand, TicTacToeLogic, ViewState>,
+    middle_layer: &mut MiddleLayer<StonePlacement, ViewStateDelta, TicTacToeLogic, ViewState>,
     local_player: u16,
     view_state: &mut ViewState,
 ) {
@@ -112,7 +117,7 @@ fn update_real_game(
                 *view_state = state;
             }
             ViewStateUpdate::Incremental(delta) => {
-                view_state.apply_move(&delta);
+                view_state.apply_delta(&delta);
             }
         }
     }
@@ -159,12 +164,11 @@ fn update_real_game(
         let y_pos = ((corrected_mouse.y - 20.0) / 100.0) as i32;
 
         if (x_pos >= 0) && (y_pos >= 0) && (x_pos < 3) && (y_pos < 3) {
-            let command = MoveCommand {
-                is_host: view_state.next_move_host,
+            let command = StonePlacement {
                 column: x_pos as u8,
                 row: y_pos as u8,
             };
-            if view_state.check_legality(&command) {
+            if view_state.check_legality(&command, local_player) {
                 middle_layer.register_server_rpc(command);
             }
         }

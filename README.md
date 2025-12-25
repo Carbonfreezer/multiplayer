@@ -214,9 +214,8 @@ perform the animation in the update, and continue draining commands once this is
 macroquad functionality in the **graphics** module. This whole part is what is described as the **Frontend** in
 [General Overview](#general-overview).
 
-The **View State** is implemented with the same name in **traits_implementation**. This also implements the **MoveCommand**, which is
-used in the context of Tic-Tac-Toe as an **RpcPayload** and **DeltaInformation** at the same time. In more complex games, this
-double function is less likely to be the case.
+The **View State** is implemented with the same name in **traits_implementation**. This also implements the **StonePlacement**, which is
+used in the context of Tic-Tac-Toe as an **RpcPayload** and **ViewStateDelta**, which encodes the delta information for the view state.
 
 The module **Backend** contains the backend also mentioned in [General Overview](#general-overview). The logic is straightforward here.
 Upon player arrival, we decide whether to kick the player based on the ID and whether spectators are allowed. On RPC processing, we check the move,

@@ -1,4 +1,5 @@
 //! All relevant drawing functions for tic tact toe are accumulated here.
+//! These are mainly text rendering and functionality for drawing the game board.
 
 use macroquad::prelude::{
     BLACK, Camera2D, Font, GRAY, TextParams, Vec2, WHITE, draw_circle, draw_line, draw_text_ex,
@@ -18,6 +19,7 @@ pub struct Graphics<'a> {
 }
 
 impl<'a> Graphics<'a> {
+    /// Sets the camera and loads the font.
     pub fn new(camera: &'a Camera2D) -> Self {
         Graphics {
             camera,
@@ -30,7 +32,7 @@ impl<'a> Graphics<'a> {
         self.camera.screen_to_world(Vec2::new(pos.0, pos.1))
     }
 
-    /// Draws a text at the indicated position.
+    /// Draws a text at the indicated position with the indicated font size.
     pub fn print_text(&self, text: &str, position: Vec2, font_size: u16) {
         draw_text_ex(
             text,
@@ -44,6 +46,20 @@ impl<'a> Graphics<'a> {
                 rotation: 0.0,
                 color: WHITE,
             },
+        );
+    }
+
+    /// Same as print text, only in this case the center point is handed over.
+    pub fn print_text_centered(&self, text: &str, position: Vec2, font_size: u16) {
+        let size = measure_text(text, Some(&self.font), font_size, 1.0);
+        self.print_text(
+            text,
+            position
+                - Vec2 {
+                x: size.width / 2.0,
+                y: size.height / 2.0,
+            },
+            font_size,
         );
     }
 
@@ -98,18 +114,5 @@ impl<'a> Graphics<'a> {
         draw_circle(x_center, y_center, ICON_SIZE, WHITE);
         draw_circle(x_center, y_center, ICON_SIZE - 2.0, BLACK);
     }
-
-    /// Same as print text, only in this case the center point is handed over.
-    pub fn print_text_centered(&self, text: &str, position: Vec2, font_size: u16) {
-        let size = measure_text(text, Some(&self.font), font_size, 1.0);
-        self.print_text(
-            text,
-            position
-                - Vec2 {
-                    x: size.width / 2.0,
-                    y: size.height / 2.0,
-                },
-            font_size,
-        );
-    }
+    
 }

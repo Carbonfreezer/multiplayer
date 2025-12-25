@@ -1,11 +1,14 @@
 //! Contains helper functionality for GUI used for setup.
 //! The first part is essentially about evoking the keyboard for the single text line edit
 //! on mobile devices in WASM mode.
+//! The main content is:
+//! - [`mobile_input`]: Does the trick to use a hidden HTML text field on mobile to activate the keyboard.
+//! - [`gui_setup`]: Global GUI configuration
+//! - [`StartupGui`]: The gui to show the log on screen.
 
 use egui_macroquad::egui;
 
-/// The purpose of this module is to force the activation of the keyboard on mobile by querying a hidden text field.
-/// Consequently, it distinguishes between mobile input and mouse input.
+
 #[cfg(target_arch = "wasm32")]
 pub mod mobile_input {
     use sapp_jsutils::JsObject;
@@ -45,7 +48,15 @@ pub mod mobile_input {
 }
 
 /// This is a helper macro to combine a single line text editing field with a
-/// hidden text HTML element to make the keyboard appear on mobile.
+/// hidden text HTML element to make the keyboard appear on mobile. In native mode this
+/// gets ignored.
+///
+/// In order for this to work the HTML file of the WASM plugin has to contain an entry of the form
+/// ```html
+/// <input type="text" id="mobile-keyboard-input"
+///        style="position: absolute; left: -9999px; opacity: 0;"
+///        autocomplete="off" />
+/// ```
 #[macro_export]
 macro_rules! focus_text_line {
     ($ui:ident, $var_name:expr) => {
@@ -68,11 +79,16 @@ macro_rules! focus_text_line {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[allow(dead_code)]
+/// The purpose of this module is to force the activation of the keyboard on mobile by querying a hidden text field.
+/// Consequently, it distinguishes between mobile input and mouse input.
 mod mobile_input {
+    /// Sets on mobile the focus on the hidden text field.
     pub fn focus_input(_: &str) {}
+    /// Asks the value of the hidden text field on mobile.
     pub fn get_value() -> String {
         String::new()
     }
+    /// Makes the hidden text field loose focus on mobile.
     pub fn blur_input() {}
 }
 
@@ -111,7 +127,7 @@ pub enum StartupResult {
         room: String,
         allow_spectators: bool,
     },
-    /// The player want to join a room.
+    /// The player wants to join a room.
     JoinRoom { room: String },
 }
 

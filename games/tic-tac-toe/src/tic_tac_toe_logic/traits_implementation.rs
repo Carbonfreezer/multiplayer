@@ -1,13 +1,25 @@
-//! Contains the view state implementation and the command that is used as a delta information and
-//! Server RPC command at the same time here.
+//! Contains all relevant trait implementations for the system:
+//!
+//! - [`ViewState`]: The complete representation of the game board.
+//! - [`ViewStateDelta`]: The delta information to update the game board.
+//! - [`StonePlacement`]: The information of where a tone gets placed. The type of stone is extracted from the player id.
 
 use serde::{Deserialize, Serialize};
 
-/// The rpc payload and the delta information is the same in our case.
+/// The delta information for the view state.
 #[derive(Clone, Serialize, Deserialize)]
-pub struct MoveCommand {
+pub struct ViewStateDelta {
     /// Flags if we have a cross or circle.
-    pub is_host: bool,
+    pub is_circle: bool,
+    /// Flags the column we move.
+    pub column: u8,
+    /// Flags the row we move.
+    pub row: u8,
+}
+
+/// This is the rpc payload for stone placement.
+#[derive(Clone, Serialize, Deserialize)]
+pub struct StonePlacement {
     /// Flags the column we move.
     pub column: u8,
     /// Flags the row we move.
@@ -35,6 +47,7 @@ pub enum GameState {
 }
 
 impl ViewState {
+    /// Creates a fresh view state with the indication if the host is the starting player or not.
     pub fn new(is_host_starting: bool) -> ViewState {
         let mut board = Vec::with_capacity(3);
         for _ in 0..3 {
@@ -50,17 +63,18 @@ impl ViewState {
         }
     }
 
-    /// Applies a move to the game board.
-    pub fn apply_move(&mut self, move_data: &MoveCommand) {
-        self.board[move_data.row as usize][move_data.column as usize] =
-            if move_data.is_host { 2 } else { 1 };
+    /// Applies a change to the game board.
+    pub fn apply_delta(&mut self, delta: &ViewStateDelta) {
+        self.board[delta.row as usize][delta.column as usize] =
+            if delta.is_circle { 2 } else { 1 };
         self.next_move_host = !self.next_move_host;
         self.game_state = self.check_winning();
     }
 
     /// Checks if the move is legal. This is if it is the correct players turn and the field is still free.
-    pub fn check_legality(&self, move_data: &MoveCommand) -> bool {
-        if move_data.is_host != self.next_move_host {
+    pub fn check_legality(&self, move_data: &StonePlacement, player_id : u16) -> bool {
+        if player_id > 1 {return false}
+        if (player_id == 0) != self.next_move_host {
             return false;
         }
         if self.board[move_data.row as usize][move_data.column as usize] != 0 {
@@ -80,7 +94,7 @@ impl ViewState {
             || (0..3).all(|i| self.board[i][2 - i] == probe)
     }
 
-    /// 0 : pending 1 : cross wins 2 : circle wins 3 : draw
+    /// Checks if we have a game over situation and if so which one.
     pub fn check_winning(&self) -> GameState {
         if self.check_for(1) {
             return GameState::CrossWins;
