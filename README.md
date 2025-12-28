@@ -389,6 +389,7 @@ your-domain.com {
 ```
 
 Note that the relay server endpoints (`reload`, `enlist`, WebSocket connections) are all routed through `/api/*`. Your game's JavaScript needs to connect to WebSocket via `wss://your-domain.com/api/` accordingly.
+With the current implementation, the ws endpoint would be  `wss://your-domain.com/api/ws`.
 
 ## Systemd service
 
