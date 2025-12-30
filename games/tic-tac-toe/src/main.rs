@@ -20,7 +20,7 @@ use crate::tic_tac_toe_logic::backend::TicTacToeLogic;
 use crate::tic_tac_toe_logic::traits_implementation::{
     GameState, StonePlacement, ViewState, ViewStateDelta,
 };
-use backbone_lib::middle_layer::{ConnectionState, MiddleLayer, ViewStateUpdate};
+use backbone_lib::transport_layer::{ConnectionState, TransportLayer, ViewStateUpdate};
 use macroquad::prelude::{
     BLACK, Camera2D, Conf, MouseButton, Rect, Vec2, clear_background, get_frame_time,
     is_mouse_button_pressed, mouse_position, next_frame, set_camera,
@@ -46,12 +46,12 @@ async fn main() {
     set_camera(&camera);
 
     let graphics = Graphics::new(&camera);
-    let mut net_architecture: MiddleLayer<
+    let mut net_architecture: TransportLayer<
         StonePlacement,
         ViewStateDelta,
         TicTacToeLogic,
         ViewState,
-    > = MiddleLayer::generate_middle_layer(
+    > = TransportLayer::generate_transport_layer(
         "ws://127.0.0.1:8080/ws".to_string(),
         "tic-tac-toe".to_string(),
     );
@@ -112,12 +112,12 @@ async fn main() {
 /// finally it sends any potential mouse clicks as stone setting commands to the server.
 fn update_real_game(
     graphics: &Graphics,
-    middle_layer: &mut MiddleLayer<StonePlacement, ViewStateDelta, TicTacToeLogic, ViewState>,
+    transport_layer: &mut TransportLayer<StonePlacement, ViewStateDelta, TicTacToeLogic, ViewState>,
     local_player: u16,
     view_state: &mut ViewState,
 ) {
     // We do not have any animations here, so we simply drain the commands.
-    while let Some(update) = middle_layer.get_next_update() {
+    while let Some(update) = transport_layer.get_next_update() {
         match update {
             ViewStateUpdate::Full(state) => {
                 *view_state = state;
@@ -175,7 +175,7 @@ fn update_real_game(
                 row: y_pos as u8,
             };
             if view_state.check_legality(&command, local_player) {
-                middle_layer.register_server_rpc(command);
+                transport_layer.register_server_rpc(command);
             }
         }
     }

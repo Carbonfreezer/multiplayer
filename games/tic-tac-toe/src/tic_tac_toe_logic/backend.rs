@@ -8,7 +8,7 @@ use backbone_lib::traits::{BackEndArchitecture, BackendCommand};
 
 /// The backend logic of tic-tac-toe is contained here,
 pub struct TicTacToeLogic {
-    /// The command list which gets drained by the middle layer.
+    /// The command list which gets drained by the transport layer.
     command_list: Vec<BackendCommand<ViewStateDelta>>,
     /// The view state, that contains the complete game representation.
     view_state: ViewState,

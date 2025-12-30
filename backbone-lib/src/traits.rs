@@ -2,26 +2,26 @@
 //!
 //! This module defines the contract between game-specific logic and the
 //! networking middleware. Games implement [`BackEndArchitecture`] to handle
-//! player events and produce state updates, while the middle layer handles
+//! player events and produce state updates, while the transport layer handles
 //! serialization and network transport.
 //!
 //! # Architecture Overview
 //!
 //! ```text
-//! ┌─────────────────────────────────────────────────────────────┐
-//! │                        Host Client                          │
-//! │  ┌───────────────┐    ┌───────────────┐    ┌─────────────┐  │
-//! │  │   Frontend    │───►│  MiddleLayer  │───►│   Backend   │  │
-//! │  │  (Rendering)  │    │  (Transport)  │    │ (Game Logic)│  │
-//! │  └───────────────┘    └───────────────┘    └─────────────┘  │
-//! └─────────────────────────────────────────────────────────────┘
+//! ┌─────────────────────────────────────────────────────────────────┐
+//! │                        Host Client                              │
+//! │  ┌───────────────┐    ┌───────────────────┐    ┌─────────────┐  │
+//! │  │   Frontend    │───►│  Transport Layer  │───►│   Backend   │  │
+//! │  │  (Rendering)  │    │  (Transport)      │    │ (Game Logic)│  │
+//! │  └───────────────┘    └───────────────────┘    └─────────────┘  │
+//! └─────────────────────────────────────────────────────────────────┘
 //!                               ▲
 //!                               │ WebSocket (via Relay Server)
 //!                               ▼
-//!                    ┌─────────────────────┐
-//!                    │   Remote Clients    │
-//!                    │ (Frontend + Middle) │
-//!                    └─────────────────────┘
+//!                    ┌────────────────────────┐
+//!                    │   Remote Clients       │
+//!                    │ (Frontend + Transport) │
+//!                    └────────────────────────┘
 //! ```
 //!
 //! # Data Flow
@@ -64,7 +64,7 @@ impl<T> SerializationCap for T where T: Serialize + DeserializeOwned {}
 
 /// Commands emitted by the game backend to control the session.
 ///
-/// The middle layer polls these via [`BackEndArchitecture::drain_commands`]
+/// The transport layer polls these via [`BackEndArchitecture::drain_commands`]
 /// and translates them into network messages or local actions.
 ///
 /// # Command Types
@@ -150,7 +150,7 @@ where
 /// The core trait for implementing game-specific server logic.
 ///
 /// A game backend is a purely event-driven state machine. It receives events
-/// (player joins, RPCs, timer callbacks) and produces commands that the middle
+/// (player joins, RPCs, timer callbacks) and produces commands that the transport
 /// layer translates into network messages.
 ///
 /// # Type Parameters
@@ -254,7 +254,7 @@ where
 
     /// Collects and clears all pending commands since the last drain.
     ///
-    /// The middle layer calls this periodically (typically every frame on the
+    /// The transport layer calls this periodically (typically every frame on the
     /// host client) to process outbound messages.
     ///
     /// # Implementation

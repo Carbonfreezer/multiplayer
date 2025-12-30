@@ -1,10 +1,10 @@
-//! The middle layer takes care of the communication with the relay service.
+//! The transport layer takes care of the communication with the relay service.
 //! This is the core entry point of the system.
 //!
 //! # Architecture Overview
 //!
 //! ```text
-//! Frontend -> MiddleLayer -> Backend
+//! Frontend -> TransportLayer -> Backend
 //! ```
 //!
 //! The backend only exists on the client-hosted server side. All other
@@ -12,7 +12,7 @@
 //! flow from left to right.
 //!
 //! - **Frontend**: Macroquad-style heartbeat-driven game loop
-//! - **MiddleLayer**: Created and updated by the frontend each frame
+//! - **TransportLayer**: Created and updated by the frontend each frame
 //! - **Backend**: Purely event-driven, only exists on the host
 //!
 //! # Required Components
@@ -31,7 +31,7 @@
 //!
 //! # Frontend Integration
 //!
-//! Before entering the game loop, create the middle layer. At the beginning of each frame,
+//! Before entering the game loop, create the transport layer. At the beginning of each frame,
 //! call `update()`.
 //!
 //! - While **Disconnected**: Show room creation/joining UI and display any error string
@@ -41,8 +41,8 @@
 //! # Example Usage
 //!
 //! ```text
-//! let mut net_architecture: MiddleLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
-//!     MiddleLayer::generate_middle_layer(
+//! let mut net_architecture: TransportLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
+//!     TransportLayer::generate_transport_layer(
 //!         "ws://127.0.0.1:8080/ws".to_string(),
 //!         "my_fat_game".to_string(),
 //!     );
@@ -127,7 +127,7 @@ struct ServerContext<BackendArchitecture> {
 
 /// Connection lifecycle states.
 ///
-/// The middle layer progresses through these states:
+/// The transport layer progresses through these states:
 ///
 /// ```text
 /// Disconnected -> AwaitingHandshake -> ExecutingHandshake -> Connected
@@ -178,29 +178,29 @@ pub enum ConnectionState {
 
 /// The central coordinator between frontend, backend, and network transport.
 ///
-/// `MiddleLayer` abstracts away the differences between hosting and joining a game.
+/// `TransportLayer` abstracts away the differences between hosting and joining a game.
 /// The frontend interacts with it identically regardless of role:
 ///
 /// ```text
-/// ┌─────────────────────────────────────────────────────────────────┐
-/// │                         Host Client                             │
-/// │  ┌──────────┐     ┌─────────────┐     ┌──────────────────────┐  │
-/// │  │ Frontend │ ───►│ MiddleLayer │ ───►│ Backend (game logic) │  │
-/// │  └──────────┘     └──────┬──────┘     └──────────────────────┘  │
-/// └──────────────────────────┼──────────────────────────────────────┘
+/// ┌─────────────────────────────────────────────────────────────────────┐
+/// │                         Host Client                                 │
+/// │  ┌──────────┐     ┌─────────────────┐     ┌──────────────────────┐  │
+/// │  │ Frontend │ ───►│ Transport Layer │ ───►│ Backend (game logic) │  │
+/// │  └──────────┘     └──────┬──────────┘     └──────────────────────┘  │
+/// └──────────────────────────┼──────────────────────────────────────────┘
 ///                            │ WebSocket
 ///                            ▼
 ///                     ┌─────────────┐
 ///                     │Relay Server │
 ///                     └──────┬──────┘
 ///                            │
-/// ┌──────────────────────────┼──────────────────────────────────────┐
-/// │                          ▼                                      │
-/// │  ┌──────────┐     ┌─────────────┐                               │
-/// │  │ Frontend │ ───►│ MiddleLayer │  (no backend on clients)      │
-/// │  └──────────┘     └─────────────┘                               │
-/// │                      Remote Client                              │
-/// └─────────────────────────────────────────────────────────────────┘
+/// ┌──────────────────────────┼──────────────────────────────────────────┐
+/// │                          ▼                                          │
+/// │  ┌──────────┐     ┌─────────────────┐                               │
+/// │  │ Frontend │ ───►│ Transport Layer │  (no backend on clients)      │
+/// │  └──────────┘     └─────────────────┘                               │
+/// │                      Remote Client                                  │
+/// └─────────────────────────────────────────────────────────────────────┘
 /// ```
 ///
 /// # Type Parameters
@@ -212,14 +212,14 @@ pub enum ConnectionState {
 ///
 /// # Lifecycle
 ///
-/// 1. Create with [`generate_middle_layer()`](Self::generate_middle_layer)
+/// 1. Create with [`generate_transport_layer()`](Self::generate_transport_layer)
 /// 2. Call [`update()`](Self::update) every frame
 /// 3. Check [`connection_state()`](Self::connection_state) to determine UI mode
 /// 4. When disconnected: call [`start_game_server()`](Self::start_game_server) or
 ///    [`start_game_client()`](Self::start_game_client)
 /// 5. When connected: poll [`get_next_update()`](Self::get_next_update) and send
 ///    actions via [`register_server_rpc()`](Self::register_server_rpc)
-pub struct MiddleLayer<ServerRpcPayload, DeltaInformation, Backend, ViewState>
+pub struct TransportLayer<ServerRpcPayload, DeltaInformation, Backend, ViewState>
 where
     ServerRpcPayload: SerializationCap,
     Backend: BackEndArchitecture<ServerRpcPayload, DeltaInformation, ViewState>,
@@ -250,14 +250,14 @@ where
 }
 
 impl<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
-    MiddleLayer<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
+    TransportLayer<ServerRpcPayload, DeltaInformation, BackendArchitecture, ViewState>
 where
     ServerRpcPayload: SerializationCap,
     BackendArchitecture: BackEndArchitecture<ServerRpcPayload, DeltaInformation, ViewState>,
     DeltaInformation: SerializationCap + Clone,
     ViewState: SerializationCap + Clone,
 {
-    /// Creates a new middle layer instance in disconnected state.
+    /// Creates a new transport layer instance in disconnected state.
     ///
     /// Call this once before entering the game loop. The instance starts
     /// disconnected and ready to host or join a game.
@@ -272,12 +272,12 @@ where
     /// # Example
     ///
     /// ```ignore
-    /// let middle_layer = MiddleLayer::<MyRpc, MyDelta, MyBackend, MyState>::generate_middle_layer(
+    /// let transport_layer = TransportLayer::<MyRpc, MyDelta, MyBackend, MyState>::generate_transport_layer(
     ///     "wss://board-game-hub.de/ws".to_string(),
     ///     "reversi".to_string(),
     /// );
     /// ```
-    pub fn generate_middle_layer(connection_string: String, game_name: String) -> Self {
+    pub fn generate_transport_layer(connection_string: String, game_name: String) -> Self {
         Self {
             server_context: None,
             state_info_que: VecDeque::new(),
@@ -289,7 +289,7 @@ where
         }
     }
 
-    /// Advances the middle layer state machine by one frame.
+    /// Advances the transport layer state machine by one frame.
     ///
     /// This method must be called once per frame, typically at the beginning
     /// of the game loop. It handles:
@@ -352,7 +352,7 @@ where
     ///
     /// ```ignore
     /// if ui.button("Host Game").clicked() {
-    ///     middle_layer.start_game_server("my-room-123".to_string(), 0);
+    ///     transport_layer.start_game_server("my-room-123".to_string(), 0);
     /// }
     /// ```
     pub fn start_game_server(&mut self, room_name: String, rule_variation: u16) {
@@ -376,7 +376,7 @@ where
     ///
     /// ```ignore
     /// if ui.button("Join Game").clicked() {
-    ///     middle_layer.start_game_client(room_code_input.clone());
+    ///     transport_layer.start_game_client(room_code_input.clone());
     /// }
     /// ```
     pub fn start_game_client(&mut self, room_name: String) {
@@ -395,7 +395,7 @@ where
     ///
     /// ```ignore
     /// if ui.button("Leave Game").clicked() {
-    ///     middle_layer.disconnect();
+    ///     transport_layer.disconnect();
     /// }
     /// ```
     pub fn disconnect(&mut self) {
@@ -429,7 +429,7 @@ where
     ///
     /// ```ignore
     /// if let Some(cell) = clicked_board_cell {
-    ///     middle_layer.register_server_rpc(GameRpc::PlacePiece { position: cell });
+    ///     transport_layer.register_server_rpc(GameRpc::PlacePiece { position: cell });
     /// }
     /// ```
     pub fn register_server_rpc(&mut self, payload: ServerRpcPayload) {
@@ -450,7 +450,7 @@ where
     ///
     /// ```ignore
     /// // Process one update per frame for smooth animations
-    /// if let Some(update) = middle_layer.get_next_update() {
+    /// if let Some(update) = transport_layer.get_next_update() {
     ///     match update {
     ///         ViewStateUpdate::Full(state) => {
     ///             game_renderer.set_state(&state);
@@ -475,7 +475,7 @@ where
     /// # Example
     ///
     /// ```ignore
-    /// match middle_layer.connection_state() {
+    /// match transport_layer.connection_state() {
     ///     ConnectionState::Disconnected { error_string } => {
     ///         if let Some(err) = error_string {
     ///             ui.label(format!("Error: {}", err));

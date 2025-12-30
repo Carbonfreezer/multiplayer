@@ -98,12 +98,12 @@ The system contains the following components:
   The backend resides solely on the client-hosted server side and must implement the **BackEndArchitecture** trait. The backend has an internal
   view state. All incremental changes are logged in a *BackendCommand* vector and also need to get applied to an internally administrated
   view state, which may get sent over the network if required.
-* **Middle Layer**: This is the central part of the library [backbone-lib](#backbone-library). The middle layer receives requests from the front end and sends requests to the
+* **Transport Layer**: This is the central part of the library [backbone-lib](#backbone-library). The transport layer receives requests from the front end and sends requests to the
   backend on the server side. To have a clear chain of command and to avoid any confusion with smart pointers and RefCells, the backend does
-  not send any commands to the middle layer, but builds a command buffer. This buffer may get polled from the middle layer. The middle layer
+  not send any commands to the transport layer, but builds a command buffer. This buffer may get polled from the transport layer. The transport layer
   is the nexus for all the information flow in the system. It also handles new players joining the client-hosted server, providing them with a full view-state update.
-* **Frontend**: This is the main program written in Macroquad, which is based on a core game loop. It has to heartbeat the middle layer, takes care
-  of the initial game connection, and can send game mechanics-relevant input over an RPC. Then it can poll state changes from the middle layer to either
+* **Frontend**: This is the main program written in Macroquad, which is based on a core game loop. It has to heartbeat the transport layer, takes care
+  of the initial game connection, and can send game mechanics-relevant input over an RPC. Then it can poll state changes from the transport layer to either
   hard-set the view state or perform animation transitions.
 
 This project uses **postcard** for binary serialization to prioritize performance and message size. 
@@ -175,9 +175,9 @@ client. Sending is immediate, and receiving is on a polling basis. This should b
 game core loop and takes into account the fact that we can not run threads easily in a non-WASM environment.
 
 The module **traits** contains the trait **BackEndArchitecture**, which the application must implement. The core
-logical functionality of the library is contained in **middle_layer**. These are the two modules mentioned in [General Overview](#general-overview).
-The **middle_layer** includes a bare-bones sample in its documentation of how a game should be structured. A more detailed
-example of this can be found in the section of [Tic-Tac-Toe](#tic-tac-toe). The middle layer is essentially a
+logical functionality of the library is contained in **transport_layer**. These are the two modules mentioned in [General Overview](#general-overview).
+The **transport_layer** includes a bare-bones sample in its documentation of how a game should be structured. A more detailed
+example of this can be found in the section of [Tic-Tac-Toe](#tic-tac-toe). The transport layer is essentially a
 logistical one for passing messages between the frontend, the backend, and the relay server. On top of this, it interfaces
 with a timer system. The timer system has been added because the backend, which has to be implemented by the game, is purely
 event-driven. The timer functionality is contained in the module **timer**.
@@ -208,8 +208,8 @@ two JavaScript files mentioned above and the hidden textline element in the HTML
 This is of interest to you if you intend to use egui with WASM and want to support mobile platforms.
 
 For the case that we are connected, we run the **update_real_game** method, which first drains the commands from the
-middle layer, then renders the screen, and finally processes the input if it is our turn. The turns get processed by registering
-an RPC with the middle layer. In the case of performing animations, you would stop draining commands when an animation is required,
+transport layer, then renders the screen, and finally processes the input if it is our turn. The turns get processed by registering
+an RPC with the transport layer. In the case of performing animations, you would stop draining commands when an animation is required,
 perform the animation in the update, and continue draining commands once this is finished. The rendering of the board is done with
 macroquad functionality in the **graphics** module. This whole part is what is described as the **Frontend** in
 [General Overview](#general-overview).
@@ -298,12 +298,12 @@ impl BackEndArchitecture<RpcPayload, DeltaInformation, ViewState> for Backend {
 In `main.rs`:
 
 ```rust
-use backbone_lib::middle_layer::MiddleLayer;
+use backbone_lib::transport_layer::TransportLayer;
 
 #[macroquad::main("Your Game")]
 async fn main() {
-    let mut net_architecture: MiddleLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
-        MiddleLayer::generate_middle_layer(
+    let mut net_architecture: TransportLayer<RpcPayload, DeltaInformation, Backend, ViewState> =
+        TransportLayer::generate_transport_layer(
             "ws://127.0.0.1:8080/ws".to_string(),
             "your-game".to_string(),
         );
@@ -323,7 +323,7 @@ async fn main() {
                 player_id,
                 rule_set,
             } => {
-                if let Some(update) = middle_layer.get_next_update() {
+                if let Some(update) = transport_layer.get_next_update() {
                     match update {
                         ViewStateUpdate::Full(state) => {
                             // Process hard setting of view state
@@ -334,7 +334,7 @@ async fn main() {
                     }
                 }
                 // In the logic, we eventually create commands to be sent to the server.
-                middle_layer.register_server_rpc(command);
+                transport_layer.register_server_rpc(command);
             }
             _ => {}
         }
