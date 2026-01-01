@@ -1,8 +1,8 @@
 //! Does all communication related stuff with the web sockets.
 //! Uses ewebsock for native builds and own implementation for WASM builds.
 
-use crate::transport_layer::ViewStateUpdate;
 use crate::traits::SerializationCap;
+use crate::transport_layer::ViewStateUpdate;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use postcard::{from_bytes, take_from_bytes, to_stdvec};
 use protocol::{
