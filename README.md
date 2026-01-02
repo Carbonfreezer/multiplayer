@@ -200,9 +200,9 @@ hidden text field in HTML and to redirect the input from there to the single edi
 two JavaScript files mentioned above and the hidden textline element in the HTML page:
 
 ```html
-<input type="text" id="mobile-keyboard-input"
-       style="position: absolute; left: -9999px; opacity: 0;"
-       autocomplete="off" />
+	<input type="text" id="mobile-keyboard-input"
+           style="position: absolute; left: 0; opacity: 0; pointer-events: none;"
+           autocomplete="off" />
 ```
 
 This is of interest to you if you intend to use egui with WASM and want to support mobile platforms.
