@@ -53,8 +53,8 @@ pub mod mobile_input {
 /// In order for this to work the HTML file of the WASM plugin has to contain an entry of the form
 /// ```html
 /// <input type="text" id="mobile-keyboard-input"
-///        style="position: absolute; left: -9999px; opacity: 0;"
-///        autocomplete="off" />
+///    style="position: absolute; left: 0; opacity: 0; pointer-events: none;"
+///    autocomplete="off" />
 /// ```
 #[macro_export]
 macro_rules! focus_text_line {
