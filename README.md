@@ -67,11 +67,11 @@ If you want to cross-compile the relay server from Windows to Linux, you need:
 
 # Getting started
 
-To get everything running as fast as possible, clone this repository and compile it with *BuildAll.bat* on Windows and *BuildAll.sh* on 
-Linux. On Linux, you have to make the shell script executable upfront. Once this is done, you can start the relay server in the 
-deploy directory. This starts a web server on port 8080. Now type <http://127.0.0.1:8080> into your favourite browser. 
-There you see a choice whether you want to test [Tic-Tac-Toe](#tic-tac-toe) or [Ternio](#ternio). After selecting any of those
-you should see a room creation screen. Start a second browser window for tic-tac-toe or a second and third for ternio ppointing to
+To get everything running as fast as possible, clone this repository and compile it with *BuildAll.bat* on Windows and *BuildAll.sh* on
+Linux. On Linux, you have to make the shell script executable upfront. Once this is done, you can start the relay server in the
+deploy directory. This starts a web server on port 8080. Now type http://127.0.0.1:8080 into your favourite browser.
+There, you see a choice: whether to test [Tic-Tac-Toe](#tic-tac-toe) or [Ternio](#ternio). After selecting any of those,
+you should see a room creation screen. Start a second browser window for tic-tac-toe or a second and third for ternio, pointing to
 the same page, and you can play those games against yourself.
 
 Opening the same page in two tabs is problematic because you have to switch tabs a couple of times to send the messages.
@@ -233,19 +233,21 @@ If the game is over, we set a timer to restart it automatically. Restarting the 
 causes a full resync.
 
 ## Ternio
-Ternio is a more advanced sample. This game implements a three player Reversi extension, with rule details readable on the 
+If you're new to the system, start with [Tic-Tac-Toe](#tic-tac-toe). Once comfortable, Ternio demonstrates patterns needed for more complex games.
+Ternio is a more advanced sample. This game implements a three-player Reversi extension, with rule details readable on the
 games [site](https://board-game-hub.de/games/ternio.html).
 
 This sample features:
-- Three active players.
-- Host privileges for color assignments and nickname setting.
-- Animations on the board triggered by network synchronizations.
-- More complex state machine for the game.
 
-The rough structure of the project is comparable to [Tic-Tac-Toe](#tic-tac-toe). The module **board_logic** contains the 
-game board representation including the rules and a few helper structs to present the board during different phases over the 
-graphics system to the player. The module **network_logic** contains all elements relevant for the network library. **render_system**
-is the rendering system for the game board, the sound, animation and the GUI interacttion. **global_game** contains the largest part of the
+* Three active players.
+* Host privileges for color assignments and nickname setting.
+* Animation transitions triggered by incoming delta updates (stone placement and flipping).
+* More complex state machine for the game.
+
+The rough structure of the project is comparable to [Tic-Tac-Toe](#tic-tac-toe). The module **board_logic** contains the
+game board representation, including the rules and a few helper structs to present the board during different phases over the
+graphics system to the player. The module **network_logic** contains all elements relevant to the network library. **render_system**
+is the rendering system for the game board, the sound, animation, and the GUI interaction. **global_game** contains the largest part of the
 front end.
 
 # Creating your own game
