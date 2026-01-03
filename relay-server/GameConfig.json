@@ -2,5 +2,9 @@
   {
     "name" : "tic-tac-toe",
     "max_players" : 10
+  },
+  {
+    "name" : "Ternio",
+    "max_players" : 3
   }
 ]

@@ -7,6 +7,7 @@ if not exist %OUT% mkdir %OUT%
 
 echo Building WASM...
 cargo build -p tic-tac-toe --target wasm32-unknown-unknown --release
+cargo build -p ternio --target wasm32-unknown-unknown --release
 
 echo Building Server...
 set CARGO_PROFILE_RELEASE_OPT_LEVEL=3
@@ -16,15 +17,18 @@ cargo build -p relay-server --release
 echo Copying client files...
 
 copy target\wasm32-unknown-unknown\release\tic-tac-toe.wasm %OUT%\
+copy target\wasm32-unknown-unknown\release\ternio.wasm %OUT%\
 copy backbone-lib\web\*.js %OUT%\
-copy games\tic-tac-toe\web\*.* %OUT%\
+copy games\web\*.* %OUT%\
+copy games\tic-tac-toe\web\tic-tac-toe.html %OUT%\
+copy games\ternio\web\ternio.html %OUT%\
 
 echo Copying server files...
 copy target\release\relay-server.exe %OUT%\
 copy relay-server\GameConfig.json %OUT%\
 
 echo Create documentation...
-cargo doc --no-deps -p backbone-lib -p protocol -p tic-tac-toe -p relay-server --open
+cargo doc --no-deps -p backbone-lib -p protocol -p tic-tac-toe -p ternio -p relay-server --open
 
 echo Done!
 pause
