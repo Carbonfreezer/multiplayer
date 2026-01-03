@@ -29,6 +29,7 @@ In the following text, I would first like to cite some sources for JavaScript fi
   - [Relay Server](#relay-server)
   - [Backbone Library](#backbone-library)
   - [Tic-Tac-Toe](#tic-tac-toe)
+  - [Ternio](#ternio)
 - [Creating your own game](#creating-your-own-game)
 - [Production deployment](#production-deployment)
 - [Known issues and limitations](#known-issues-and-limitations)
@@ -66,7 +67,14 @@ If you want to cross-compile the relay server from Windows to Linux, you need:
 
 # Getting started
 
-To get everything running as fast as possible, clone this repository and compile it with *BuildAll.bat* on Windows and *BuildAll.sh* on Linux. On Linux, you have to make the shell script executable upfront. Once this is done, you can start the relay server in the deploy directory. This starts a web server on port 8080. Now type <http://127.0.0.1:8080> into your favourite browser. You should see a room creation screen. Start a second browser window and do the same here, and you can play tic-tac-toe against yourself. Opening the same page in two tabs is problematic because you have to switch tabs a couple of times to send the messages.
+To get everything running as fast as possible, clone this repository and compile it with *BuildAll.bat* on Windows and *BuildAll.sh* on 
+Linux. On Linux, you have to make the shell script executable upfront. Once this is done, you can start the relay server in the 
+deploy directory. This starts a web server on port 8080. Now type <http://127.0.0.1:8080> into your favourite browser. 
+There you see a choice whether you want to test [Tic-Tac-Toe](#tic-tac-toe) or [Ternio](#ternio). After selecting any of those
+you should see a room creation screen. Start a second browser window for tic-tac-toe or a second and third for ternio ppointing to
+the same page, and you can play those games against yourself.
+
+Opening the same page in two tabs is problematic because you have to switch tabs a couple of times to send the messages.
 
 ```bash
 # Linux/MacOS
@@ -164,7 +172,8 @@ The backbone library contains, in its web folder, two JavaScript files that beco
 This is the Macroquad library as mentioned [Foreign Sources](#foreign-sources) and a miniquad plugin to take care of the relevant web socket
 implementation. The web socket implementation is limited here by having only one web socket at a time and by only sending and receiving
 binary messages. This is handled by the file **quad_ws.js**; both files must be included in a web page that is using the compiled
-WASM plugin. The remaining relevant JavaScript files and a sample web page are available in the [Tic-Tac-Toe](#tic-tac-toe) web directory.
+WASM plugin. The remaining relevant JavaScript files and a sample web page are available in the web directory of the games folder and 
+in the web directory of the specific samples [Tic-Tac-Toe](#tic-tac-toe) and [Ternio](#ternio).
 
 The Rust part of the web socket implementation can be found in **web_socket_interface.rs**, where the first part of the file is
 essentially abstracting over the relevant parts of the web socket functionality by using **ewebsock** in the non WASM part and
@@ -222,6 +231,22 @@ Upon player arrival, we decide whether to kick the player based on the ID and wh
 apply it to the local view state, and generate the delta information update. Remember, in the backend, both have to be applied.
 If the game is over, we set a timer to restart it automatically. Restarting the game switches the starting player and
 causes a full resync.
+
+## Ternio
+Ternio is a more advanced sample. This game implements a three player Reversi extension, with rule details readable on the 
+games [site](https://board-game-hub.de/games/ternio.html).
+
+This sample features:
+- Three active players.
+- Host privileges for color assignments and nickname setting.
+- Animations on the board triggered by network synchronizations.
+- More complex state machine for the game.
+
+The rough structure of the project is comparable to [Tic-Tac-Toe](#tic-tac-toe). The module **board_logic** contains the 
+game board representation including the rules and a few helper structs to present the board during different phases over the 
+graphics system to the player. The module **network_logic** contains all elements relevant for the network library. **render_system**
+is the rendering system for the game board, the sound, animation and the GUI interacttion. **global_game** contains the largest part of the
+front end.
 
 # Creating your own game
 
