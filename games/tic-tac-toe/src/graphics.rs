@@ -7,7 +7,7 @@ use macroquad::prelude::{
 };
 
 /// The font we draw with gets embedded as binary.
-const HELVETICA: &[u8] = include_bytes!("../Helvetica.ttf");
+const HELVETICA: &[u8] = include_bytes!("../Roboto-Regular.ttf");
 
 /// The size of the cross and the circle in the game.
 const ICON_SIZE: f32 = 35.0;

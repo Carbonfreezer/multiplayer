@@ -7,7 +7,7 @@ use macroquad::audio::{Sound, load_sound_from_bytes, play_sound_once};
 use macroquad::prelude::*;
 
 /// Embedding of helvetica.ttf.
-const HELVETICA: &[u8] = include_bytes!("../../Helvetica.ttf");
+const HELVETICA: &[u8] = include_bytes!("../../Roboto-Regular.ttf");
 
 /// Embedding of stone placement sound.
 const PLACEMENT: &[u8] = include_bytes!("../../Drop.wav");
