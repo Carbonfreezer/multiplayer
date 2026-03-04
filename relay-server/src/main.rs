@@ -151,7 +151,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     // Ping-Task to keep alive.
     let ping_sender = wrapped_sender.clone();
     let ping_task = tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(15));
+        let mut interval = tokio::time::interval(Duration::from_secs(30));
         interval.tick().await; // Skip first tick.
         loop {
             interval.tick().await;
