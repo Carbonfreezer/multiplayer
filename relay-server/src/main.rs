@@ -9,12 +9,15 @@ use crate::hand_shake::{
 use crate::lobby::{AppState, reload_config};
 use crate::message_relay::{handle_client_logic, handle_server_logic};
 use axum::Router;
-use axum::extract::ws::WebSocket;
+use axum::extract::ws::{Message, WebSocket};
 use axum::extract::{State, WebSocketUpgrade};
 use axum::response::IntoResponse;
 use axum::routing::get;
 use futures_util::stream::StreamExt;
 use std::sync::Arc;
+use std::time::Duration;
+use bytes::Bytes;
+use futures_util::SinkExt;
 use tokio::sync::Mutex;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -144,6 +147,21 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     let disconnect_data = DisconnectData::from(&base_data);
     let success = inform_client_of_connection(&mut sender, &base_data).await;
     let wrapped_sender = Arc::new(Mutex::new(sender));
+
+    // Ping-Task to keep alive.
+    let ping_sender = wrapped_sender.clone();
+    let ping_task = tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(15));
+        interval.tick().await; // Skip first tick.
+        loop {
+            interval.tick().await;
+            let mut s = ping_sender.lock().await;
+            if s.send(Message::Ping(Bytes::new())).await.is_err() {
+                break;
+            }
+        }
+    });
+
     let mut error_message = "Connection to server lost";
     if success {
         match base_data.specific_data {
@@ -169,5 +187,6 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
         }
     }
 
+    ping_task.abort();
     shutdown_connection(wrapped_sender, disconnect_data, state, error_message).await;
 }
