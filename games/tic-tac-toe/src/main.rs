@@ -53,6 +53,7 @@ async fn main() {
         ViewState,
     > = TransportLayer::generate_transport_layer(
         "ws://127.0.0.1:8080/ws".to_string(),
+        // "wss://board-game-hub.de/api/ws".to_string(),
         "tic-tac-toe".to_string(),
     );
 

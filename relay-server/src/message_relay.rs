@@ -126,8 +126,6 @@ async fn send_logic_server(
     sender: Arc<Mutex<SplitSink<WebSocket, Message>>>,
     mut internal_receiver: Receiver<Bytes>,
 ) -> &'static str {
-    let mut enclosed = sender.lock().await;
-
     while let Some(bytes) = internal_receiver.recv().await {
         if bytes.is_empty() {
             tracing::error!("Illegal internal empty message in send logic server.");
@@ -141,7 +139,7 @@ async fn send_logic_server(
             return "Unknown internal Client->Server command";
         }
         // Simply pass on the message.
-        let res = enclosed.send(Message::Binary(bytes)).await;
+        let res = sender.lock().await.send(Message::Binary(bytes)).await;
         if let Err(err) = res {
             tracing::error!(?err, "Error in communication with server endpoint.");
             return "Error in communication with server endpoint.";
@@ -270,8 +268,6 @@ async fn send_logic_client(
     mut internal_receiver: tokio::sync::broadcast::Receiver<Bytes>,
     player_id: u16,
 ) -> &'static str {
-    let mut enclosed = sender.lock().await;
-
     let mut is_synced = false;
     loop {
         let state = internal_receiver.recv().await;
@@ -310,7 +306,7 @@ async fn send_logic_client(
                     }
                     DELTA_UPDATE => {
                         if is_synced {
-                            let res = enclosed.send(Message::Binary(bytes)).await;
+                            let res = sender.lock().await.send(Message::Binary(bytes)).await;
                             if let Err(error) = res {
                                 tracing::error!(
                                     ?error,
@@ -324,7 +320,7 @@ async fn send_logic_client(
                     FULL_UPDATE => {
                         if !is_synced {
                             is_synced = true;
-                            let res = enclosed.send(Message::Binary(bytes)).await;
+                            let res = sender.lock().await.send(Message::Binary(bytes)).await;
                             if let Err(error) = res {
                                 tracing::error!(
                                     ?error,
@@ -338,7 +334,7 @@ async fn send_logic_client(
                     RESET => {
                         // We simply forward the message and are definitively synced here.
                         is_synced = true;
-                        let res = enclosed.send(Message::Binary(bytes)).await;
+                        let res = sender.lock().await.send(Message::Binary(bytes)).await;
                         if let Err(error) = res {
                             tracing::error!(?error, "Error in communication with client endpoint.");
                             return "Error in communication with client endpoint.";
